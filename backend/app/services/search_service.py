@@ -72,6 +72,9 @@ async def _db_search(
                 Wine.canonical_name.ilike(pattern),
                 Wine.producer.ilike(pattern),
                 Wine.grape_varieties.cast(String).ilike(pattern),
+                Wine.country.ilike(pattern),
+                Wine.region.ilike(pattern),
+                Wine.subregion.ilike(pattern),
             )
         )
     stmt = _apply_filters(stmt, filters)
@@ -89,6 +92,9 @@ async def _db_count(db: AsyncSession, query: str, filters: dict) -> int:
                 Wine.canonical_name.ilike(pattern),
                 Wine.producer.ilike(pattern),
                 Wine.grape_varieties.cast(String).ilike(pattern),
+                Wine.country.ilike(pattern),
+                Wine.region.ilike(pattern),
+                Wine.subregion.ilike(pattern),
             )
         )
     stmt = _apply_filters(stmt, filters)
