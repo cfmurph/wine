@@ -71,9 +71,17 @@ def _parse_record(raw: dict) -> dict | None:
     if not canonical_name:
         canonical_name = title
 
-    region = raw.get("region_1") or raw.get("province") or ""
-    subregion = raw.get("region_2") or ""
+    # region_1 is the fine-grained wine area (e.g. "Barolo", "Napa Valley")
+    # province is the broader area (e.g. "Piedmont", "California")
+    # Store province in subregion so searches for broad region names still match.
+    region = raw.get("region_1") or ""
+    province = raw.get("province") or ""
+    subregion = raw.get("region_2") or province  # prefer region_2, fall back to province
     appellation = raw.get("designation") or ""
+
+    # If region_1 is blank, use province as the primary region
+    if not region:
+        region = province
 
     grapes = []
     variety = (raw.get("variety") or "").strip()
