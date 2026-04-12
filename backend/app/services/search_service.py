@@ -3,6 +3,7 @@ Search service — orchestrates wine search across providers and the internal DB
 """
 
 from sqlalchemy import select, or_, func
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.wine import Wine, WineScore, WinePrice
@@ -60,7 +61,10 @@ async def search_wines(
 async def _db_search(
     db: AsyncSession, query: str, filters: dict, page: int, per_page: int
 ) -> list[Wine]:
-    stmt = select(Wine)
+    stmt = select(Wine).options(
+        selectinload(Wine.scores),
+        selectinload(Wine.prices),
+    )
     if query:
         pattern = f"%{query}%"
         stmt = stmt.where(
