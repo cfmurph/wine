@@ -2,7 +2,7 @@
 Search service — orchestrates wine search across providers and the internal DB.
 """
 
-from sqlalchemy import select, or_, func
+from sqlalchemy import select, or_, func, String
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -71,7 +71,7 @@ async def _db_search(
             or_(
                 Wine.canonical_name.ilike(pattern),
                 Wine.producer.ilike(pattern),
-                Wine.grape_varieties.cast(str).ilike(pattern),
+                Wine.grape_varieties.cast(String).ilike(pattern),
             )
         )
     stmt = _apply_filters(stmt, filters)
@@ -88,7 +88,7 @@ async def _db_count(db: AsyncSession, query: str, filters: dict) -> int:
             or_(
                 Wine.canonical_name.ilike(pattern),
                 Wine.producer.ilike(pattern),
-                Wine.grape_varieties.cast(str).ilike(pattern),
+                Wine.grape_varieties.cast(String).ilike(pattern),
             )
         )
     stmt = _apply_filters(stmt, filters)
@@ -119,7 +119,7 @@ def _apply_filters(stmt, filters: dict):
     if filters.get("style"):
         stmt = stmt.where(Wine.style.ilike(f"%{filters['style']}%"))
     if filters.get("grape"):
-        stmt = stmt.where(Wine.grape_varieties.cast(str).ilike(f"%{filters['grape']}%"))
+        stmt = stmt.where(Wine.grape_varieties.cast(String).ilike(f"%{filters['grape']}%"))
     if filters.get("winery") or filters.get("producer"):
         producer = filters.get("winery") or filters.get("producer")
         stmt = stmt.where(Wine.producer.ilike(f"%{producer}%"))
