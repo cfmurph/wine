@@ -19,18 +19,26 @@ async def search_wines(
     page: int = 1,
     per_page: int = 20,
 ) -> WineSearchResponse:
-    # 1. Check internal DB first
+    # 1. Always try the internal DB first
     db_results = await _db_search(db, query, filters, page, per_page)
+    total = await _db_count(db, query, filters)
+
     if db_results:
         results = [_to_search_result(w) for w in db_results]
-        total = await _db_count(db, query, filters)
-        logger.info("search_from_db", query=query, count=len(results))
+        logger.info("search_from_db", query=query, count=len(results), total=total)
         return WineSearchResponse(results=results, total=total, page=page, per_page=per_page)
 
-    # 2. Fall back to external provider
+    # 2. Only fall back to Wine-Searcher when we have no local data at all
+    #    AND no filters were applied (filters returning 0 is a valid empty result).
+    if filters:
+        return WineSearchResponse(results=[], total=0, page=page, per_page=per_page)
+
+    if not query:
+        return WineSearchResponse(results=[], total=0, page=page, per_page=per_page)
+
     adapter = WineSearcherAdapter()
     try:
-        raw_wines = await adapter.search_wines(query, {**filters, "page": page, "per_page": per_page})
+        raw_wines = await adapter.search_wines(query, {"page": page, "per_page": per_page})
     except Exception as exc:
         logger.error("search_provider_failure", error=str(exc))
         raw_wines = []
@@ -59,6 +67,8 @@ async def _db_search(
             or_(
                 Wine.canonical_name.ilike(pattern),
                 Wine.producer.ilike(pattern),
+                Wine.description.ilike(pattern),
+                Wine.appellation.ilike(pattern),
             )
         )
     stmt = _apply_filters(stmt, filters)
@@ -75,6 +85,8 @@ async def _db_count(db: AsyncSession, query: str, filters: dict) -> int:
             or_(
                 Wine.canonical_name.ilike(pattern),
                 Wine.producer.ilike(pattern),
+                Wine.description.ilike(pattern),
+                Wine.appellation.ilike(pattern),
             )
         )
     stmt = _apply_filters(stmt, filters)
@@ -84,7 +96,18 @@ async def _db_count(db: AsyncSession, query: str, filters: dict) -> int:
 
 def _apply_filters(stmt, filters: dict):
     if filters.get("region"):
-        stmt = stmt.where(Wine.region.ilike(f"%{filters['region']}%"))
+        pattern = f"%{filters['region']}%"
+        # Match against region, subregion, country, and appellation so that
+        # broad terms like "piedmont" or "bordeaux" hit the right rows regardless
+        # of how granular the stored field is.
+        stmt = stmt.where(
+            or_(
+                Wine.region.ilike(pattern),
+                Wine.subregion.ilike(pattern),
+                Wine.country.ilike(pattern),
+                Wine.appellation.ilike(pattern),
+            )
+        )
     if filters.get("country"):
         stmt = stmt.where(Wine.country.ilike(f"%{filters['country']}%"))
     if filters.get("vintage"):
@@ -93,6 +116,9 @@ def _apply_filters(stmt, filters: dict):
         stmt = stmt.where(Wine.style.ilike(f"%{filters['style']}%"))
     if filters.get("grape"):
         stmt = stmt.where(Wine.grape_varieties.cast(str).ilike(f"%{filters['grape']}%"))
+    if filters.get("winery") or filters.get("producer"):
+        producer = filters.get("winery") or filters.get("producer")
+        stmt = stmt.where(Wine.producer.ilike(f"%{producer}%"))
     return stmt
 
 

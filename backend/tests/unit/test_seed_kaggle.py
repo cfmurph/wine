@@ -83,6 +83,10 @@ class TestParseRecord:
         result = _parse_record(self._base(region_1=""))
         assert result["region"] == "Mendoza"
 
+    def test_province_stored_in_subregion(self):
+        result = _parse_record(self._base(region_1="Luján de Cuyo", region_2=""))
+        assert result["subregion"] == "Mendoza"  # province goes to subregion
+
     def test_appellation_from_designation(self):
         result = _parse_record(self._base(designation="Grand Cru"))
         assert result["appellation"] == "Grand Cru"
