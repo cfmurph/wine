@@ -71,8 +71,7 @@ async def _db_search(
             or_(
                 Wine.canonical_name.ilike(pattern),
                 Wine.producer.ilike(pattern),
-                Wine.description.ilike(pattern),
-                Wine.appellation.ilike(pattern),
+                Wine.grape_varieties.cast(str).ilike(pattern),
             )
         )
     stmt = _apply_filters(stmt, filters)
@@ -89,8 +88,7 @@ async def _db_count(db: AsyncSession, query: str, filters: dict) -> int:
             or_(
                 Wine.canonical_name.ilike(pattern),
                 Wine.producer.ilike(pattern),
-                Wine.description.ilike(pattern),
-                Wine.appellation.ilike(pattern),
+                Wine.grape_varieties.cast(str).ilike(pattern),
             )
         )
     stmt = _apply_filters(stmt, filters)
@@ -113,7 +111,9 @@ def _apply_filters(stmt, filters: dict):
             )
         )
     if filters.get("country"):
-        stmt = stmt.where(Wine.country.ilike(f"%{filters['country']}%"))
+        # Use exact case-insensitive match for country to prevent
+        # "US" matching "Australia", "Austria", etc.
+        stmt = stmt.where(func.lower(Wine.country) == filters["country"].lower())
     if filters.get("vintage"):
         stmt = stmt.where(Wine.vintage == int(filters["vintage"]))
     if filters.get("style"):
