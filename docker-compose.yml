@@ -57,10 +57,14 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+    # No node_modules or .next bind-mounts — use the container's own copies
+    # so the host filesystem never shadows what was installed during build.
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/tailwind.config.js:/app/tailwind.config.js
+      - ./frontend/postcss.config.js:/app/postcss.config.js
+      - ./frontend/next.config.js:/app/next.config.js
 
 volumes:
   postgres_data:
