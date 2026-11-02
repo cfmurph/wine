@@ -14,7 +14,7 @@ import {
   WineryFilters,
   WineryListResponse,
 } from "@/types/winery";
-import { Deal, DealItem, DealItemKind, DealUpdate } from "@/types/deal";
+import { Deal, DealAssumptions, DealComparison, DealFinancials, DealItem, DealItemKind, DealUpdate, FinancialYearInput, FinancingInput, FinancingResult } from "@/types/deal";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
@@ -195,6 +195,41 @@ export async function updateDealItem(
 
 export async function deleteDealItem(dealId: string, itemId: string): Promise<void> {
   await api.delete(`/users/me/deals/${dealId}/items/${itemId}`);
+}
+
+export async function compareDeals(scenarios: {
+  worst_revenue: number;
+  worst_costs: number;
+  best_revenue: number;
+  best_costs: number;
+}): Promise<DealComparison[]> {
+  const { data } = await api.get<DealComparison[]>("/users/me/deals/compare", { params: scenarios });
+  return data;
+}
+
+export async function getDealFinancials(dealId: string): Promise<DealFinancials> {
+  const { data } = await api.get<DealFinancials>(`/users/me/deals/${dealId}/financials`);
+  return data;
+}
+
+export async function saveDealAssumptions(dealId: string, payload: DealAssumptions): Promise<DealFinancials> {
+  const { data } = await api.put<DealFinancials>(`/users/me/deals/${dealId}/financials/assumptions`, payload);
+  return data;
+}
+
+export async function saveFinancialYear(dealId: string, year: number, payload: FinancialYearInput): Promise<DealFinancials> {
+  const { data } = await api.put<DealFinancials>(`/users/me/deals/${dealId}/financials/years/${year}`, payload);
+  return data;
+}
+
+export async function deleteFinancialYear(dealId: string, year: number): Promise<DealFinancials> {
+  const { data } = await api.delete<DealFinancials>(`/users/me/deals/${dealId}/financials/years/${year}`);
+  return data;
+}
+
+export async function modelFinancing(dealId: string, payload: FinancingInput): Promise<FinancingResult> {
+  const { data } = await api.post<FinancingResult>(`/users/me/deals/${dealId}/financing`, payload);
+  return data;
 }
 
 export async function login(email: string, password: string) {

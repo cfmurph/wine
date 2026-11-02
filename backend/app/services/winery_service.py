@@ -1,13 +1,14 @@
+from datetime import date
 from statistics import median
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.wine import MarketStat, PriceSnapshot, Wine, Winery, WineryListing
+from app.models.wine import MarketStat, PriceSnapshot, Wine, Winery, WineryListing, WinerySale
 from app.schemas.winery import (
     DataSourceOut, MarketResponse, MarketStatOut, PriceBucketOut, WineryDetail,
-    WineryListingOut, WineryListResponse, WinerySummary, WineryWineOut,
+    WineryListingOut, WineryListResponse, WinerySaleOut, WinerySummary, WineryWineOut,
 )
 from app.services.winery_scoring import (
     STANDARD_BOTTLE_LITRES, PeerContext, bottle_prices, build_peer_context, critic_scores,
@@ -15,6 +16,7 @@ from app.services.winery_scoring import (
 )
 
 _CLOSED_LISTING_STATUSES = {"Sold", "Sale approved", "Withdrawn"}
+RECHECK_AFTER_DAYS = 30
 
 _LICENCE_SOURCE = DataSourceOut(
     label="BC licensed establishments workbook",
@@ -108,6 +110,15 @@ def latest_listings(listings) -> list:
     """Keep each listing's newest row, in the given order. Older rows are its history."""
     newest = {l.advertised_name: l for l in sorted(listings, key=lambda l: l.as_of)}
     return [l for l in listings if newest[l.advertised_name] is l]
+
+
+def listings_due_for_recheck(listings, today: date) -> list:
+    """Open listings last checked too long ago, oldest first. Expects each listing's newest row."""
+    due = [
+        l for l in listings
+        if l.status not in _CLOSED_LISTING_STATUSES and (today - l.as_of).days >= RECHECK_AFTER_DAYS
+    ]
+    return sorted(due, key=lambda l: l.as_of)
 
 
 async def list_wineries(
@@ -221,6 +232,12 @@ async def get_market(db: AsyncSession) -> MarketResponse:
         select(WineryListing).order_by(WineryListing.asking_price.desc().nulls_last())
     )).scalars().all()
 
+    sales = (await db.execute(
+        select(WinerySale).order_by(WinerySale.sold_year.desc(), WinerySale.sale_price.desc())
+    )).scalars().all()
+
+    current_listings = latest_listings(listings)
+
     return MarketResponse(
         stats=[MarketStatOut.model_validate(s) for s in stats],
         stats_source=_STATS_SOURCE,
@@ -229,6 +246,11 @@ async def get_market(db: AsyncSession) -> MarketResponse:
         priced_bottles=len(prices),
         price_date=latest_date,
         price_source=_PRICE_SOURCE,
-        listings=[WineryListingOut.model_validate(l) for l in latest_listings(listings)],
+        listings=[WineryListingOut.model_validate(l) for l in current_listings],
+        listings_to_recheck=[
+            WineryListingOut.model_validate(l) for l in listings_due_for_recheck(current_listings, date.today())
+        ],
+        recheck_after_days=RECHECK_AFTER_DAYS,
+        sales=[WinerySaleOut.model_validate(s) for s in sales],
         reports=_MARKET_REPORTS,
     )

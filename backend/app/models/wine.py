@@ -203,6 +203,27 @@ class WineryListing(Base):
     winery = relationship("Winery", back_populates="listings")
 
 
+class WinerySale(Base):
+    """A reported completed or court-approved sale, entered by hand from public sources."""
+
+    __tablename__ = "winery_sale"
+
+    id = Column(String, primary_key=True, default=_uuid)
+    name = Column(String(256), nullable=False)
+    location = Column(String(256))
+    sold_year = Column(Integer, nullable=False)
+    sale_price = Column(Float, nullable=False)
+    last_asking_price = Column(Float)
+    total_acres = Column(Float)
+    planted_acres = Column(Float)
+    sale_type = Column(String(32), nullable=False)
+    evidence = Column(String(32), nullable=False)
+    notes = Column(Text)
+    source_url = Column(String(1024))
+
+    __table_args__ = (UniqueConstraint("name", "sold_year", name="uq_winery_sale"),)
+
+
 class MarketStat(Base):
     __tablename__ = "market_stat"
 
@@ -231,6 +252,14 @@ class Deal(Base):
     next_step = Column(String(512))
     next_step_due = Column(Date)
     notes = Column(Text)
+    asking_price = Column(Float)
+    property_value = Column(Float)
+    owner_salary = Column(Float)
+    working_capital = Column(Float)
+    replanting_cost = Column(Float)
+    equipment_cost = Column(Float)
+    repair_cost = Column(Float)
+    inventory_funding = Column(Float)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -240,6 +269,9 @@ class Deal(Base):
     winery = relationship("Winery")
     items = relationship(
         "DealItem", back_populates="deal", cascade="all, delete-orphan", order_by="DealItem.position"
+    )
+    financials = relationship(
+        "DealFinancial", back_populates="deal", cascade="all, delete-orphan", order_by="DealFinancial.fiscal_year"
     )
 
 
@@ -255,3 +287,28 @@ class DealItem(Base):
     position = Column(Integer, nullable=False, default=0)
 
     deal = relationship("Deal", back_populates="items")
+
+
+class DealFinancial(Base):
+    """One fiscal year of a seller's figures. Private to the deal's owner; blank means not provided."""
+
+    __tablename__ = "deal_financial"
+
+    id = Column(String, primary_key=True, default=_uuid)
+    deal_id = Column(String, ForeignKey("deal.id", ondelete="CASCADE"), nullable=False, index=True)
+    fiscal_year = Column(Integer, nullable=False)
+    revenue = Column(Float)
+    tax_return_revenue = Column(Float)
+    cost_of_goods = Column(Float)
+    operating_expenses = Column(Float)
+    owner_addbacks = Column(Float)
+    cases_opening = Column(Float)
+    cases_produced = Column(Float)
+    cases_sold = Column(Float)
+    cases_closing = Column(Float)
+    grape_tonnes = Column(Float)
+    channels = Column(JSONB, nullable=False, default=list)
+
+    __table_args__ = (UniqueConstraint("deal_id", "fiscal_year", name="uq_deal_financial_year"),)
+
+    deal = relationship("Deal", back_populates="financials")

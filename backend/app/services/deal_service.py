@@ -5,8 +5,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.wine import Deal, DealItem, Winery
-from app.schemas.deal import DealCreate, DealItemCreate, DealItemUpdate, DealUpdate
+from app.models.wine import Deal, DealFinancial, DealItem, Winery
+from app.schemas.deal import (
+    DealAssumptions, DealComparisonOut, DealCreate, DealFinancialsOut, DealItemCreate, DealItemUpdate, DealUpdate,
+    FinancialYearIn, FinancialYearOut, FinancingIn, FinancingOut,
+)
+from app.services.deal_analysis import analyze_deal, compare_deal
+from app.services.deal_financing import model_financing
 
 DEFAULT_ITEMS = [
     ("document", "Financial statements and tax returns, 3 to 5 years"),
@@ -95,3 +100,73 @@ async def update_item(db: AsyncSession, user_id: str, deal_id: str, item_id: str
 
 async def delete_item(db: AsyncSession, user_id: str, deal_id: str, item_id: str) -> None:
     await db.delete(_find_item(await get_deal(db, user_id, deal_id), item_id))
+
+
+async def _deal_with_financials(db: AsyncSession, user_id: str, deal_id: str) -> Deal:
+    deal = (await db.execute(
+        select(Deal).options(selectinload(Deal.financials)).where(Deal.id == deal_id, Deal.user_id == user_id)
+    )).scalar_one_or_none()
+    if deal is None:
+        raise HTTPException(status_code=404, detail="Deal not found")
+    return deal
+
+
+def _financials_out(deal: Deal) -> DealFinancialsOut:
+    analysis_year, checks = analyze_deal(deal, deal.financials)
+    return DealFinancialsOut(
+        deal_id=deal.id,
+        name=deal.name,
+        assumptions=DealAssumptions.model_validate(deal),
+        years=[FinancialYearOut.model_validate(y) for y in deal.financials],
+        analysis_year=analysis_year,
+        checks=checks,
+    )
+
+
+async def get_financials(db: AsyncSession, user_id: str, deal_id: str) -> DealFinancialsOut:
+    return _financials_out(await _deal_with_financials(db, user_id, deal_id))
+
+
+async def set_assumptions(db: AsyncSession, user_id: str, deal_id: str, payload: DealAssumptions) -> DealFinancialsOut:
+    deal = await _deal_with_financials(db, user_id, deal_id)
+    for field, value in payload.model_dump().items():
+        setattr(deal, field, value)
+    await db.flush()
+    return _financials_out(deal)
+
+
+async def set_financial_year(
+    db: AsyncSession, user_id: str, deal_id: str, fiscal_year: int, payload: FinancialYearIn
+) -> DealFinancialsOut:
+    deal = await _deal_with_financials(db, user_id, deal_id)
+    year = next((y for y in deal.financials if y.fiscal_year == fiscal_year), None)
+    if year is None:
+        year = DealFinancial(fiscal_year=fiscal_year)
+        deal.financials.append(year)
+    for field, value in payload.model_dump().items():
+        setattr(year, field, value)
+    deal.financials.sort(key=lambda y: y.fiscal_year)
+    await db.flush()
+    return _financials_out(deal)
+
+
+async def delete_financial_year(db: AsyncSession, user_id: str, deal_id: str, fiscal_year: int) -> DealFinancialsOut:
+    deal = await _deal_with_financials(db, user_id, deal_id)
+    year = next((y for y in deal.financials if y.fiscal_year == fiscal_year), None)
+    if year is None:
+        raise HTTPException(status_code=404, detail="Year not found")
+    deal.financials.remove(year)
+    await db.flush()
+    return _financials_out(deal)
+
+
+async def compare_deals(db: AsyncSession, user_id: str, worst, best) -> list[DealComparisonOut]:
+    deals = (await db.execute(
+        select(Deal).options(selectinload(Deal.financials)).where(Deal.user_id == user_id).order_by(Deal.created_at)
+    )).scalars()
+    return [compare_deal(deal, deal.financials, worst, best) for deal in deals]
+
+
+async def get_financing(db: AsyncSession, user_id: str, deal_id: str, payload: FinancingIn) -> FinancingOut:
+    deal = await _deal_with_financials(db, user_id, deal_id)
+    return model_financing(deal, deal.financials, payload)

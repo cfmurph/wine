@@ -10,7 +10,7 @@ from app.services.winery_scoring import (
     DEFAULT_WEIGHTS, PeerContext, SubScore, build_peer_context, overall_score, price_per_planted_acre,
     score_brand, score_land, score_operations, score_tourism, score_winery,
 )
-from app.services.winery_service import _matches_filters, bucket_prices, latest_listings
+from app.services.winery_service import _matches_filters, bucket_prices, latest_listings, listings_due_for_recheck
 
 
 @dataclass
@@ -191,3 +191,17 @@ def test_latest_listings_keeps_newest_row_in_given_order():
     new = _Row("Maverick", date(2026, 11, 1))
     other = _Row("Hainle", date(2026, 10, 1))
     assert latest_listings([other, old, new]) == [other, new]
+
+
+def test_recheck_lists_open_old_listings_oldest_first():
+    @dataclass
+    class _Row:
+        status: str
+        as_of: date
+
+    today = date(2026, 11, 1)
+    older = _Row("Advertised", date(2026, 8, 1))
+    old = _Row("Offer accepted", date(2026, 10, 1))
+    fresh = _Row("Advertised", date(2026, 10, 15))
+    sold = _Row("Sold", date(2026, 1, 1))
+    assert listings_due_for_recheck([fresh, old, sold, older], today) == [older, old]

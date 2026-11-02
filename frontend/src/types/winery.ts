@@ -113,6 +113,22 @@ export interface MarketStat {
   unit: string;
 }
 
+export interface WinerySale {
+  id: string;
+  name: string;
+  location?: string | null;
+  sold_year: number;
+  sale_price: number;
+  last_asking_price?: number | null;
+  total_acres?: number | null;
+  planted_acres?: number | null;
+  sale_type: string;
+  evidence: string;
+  notes?: string | null;
+  source_url?: string | null;
+  share_of_asking?: number | null;
+}
+
 export interface MarketData {
   stats: MarketStat[];
   stats_source: DataSource;
@@ -122,5 +138,8 @@ export interface MarketData {
   price_date?: string | null;
   price_source: DataSource;
   listings: WineryListing[];
+  listings_to_recheck: WineryListing[];
+  recheck_after_days: number;
+  sales: WinerySale[];
   reports: DataSource[];
 }

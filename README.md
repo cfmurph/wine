@@ -67,7 +67,7 @@ Copy `backend/.env.example` → `backend/.env` and set:
 
 ## Winery Acquisition Tool
 
-`/wineries` and `/market` help screen licensed BC wineries as possible acquisitions. `/advisors` lists BC specialists to review a purchase; its entries are hand-checked and live in the page file. `/deals` tracks each purchase for the logged-in user; deal data stays in the database and must never be committed.
+`/wineries` and `/market` help screen licensed BC wineries as possible acquisitions. `/advisors` lists BC specialists to review a purchase; its entries are hand-checked and live in the page file. `/deals` tracks each purchase for the logged-in user; deal data, including seller financials, stays in the database and must never be committed.
 
 Load or refresh the data from `backend/`, in this order:
 
@@ -75,11 +75,14 @@ Load or refresh the data from `backend/`, in this order:
 python3 scripts/import_bc_wineries.py   # Licensed wineries, service capacity, endorsements
 python3 scripts/import_bc_prices.py     # BC Liquor Store shelf prices (adds a monthly snapshot)
 python3 scripts/import_listings.py      # Hand-entered sale listings: data/winery_listings.csv
+python3 scripts/import_sales.py         # Hand-entered reported sales: data/winery_sales.csv
 python3 scripts/import_market_stats.py  # Statistics Canada annual wine sales
 python3 scripts/link_wineries.py        # Link wines and listings to wineries
 ```
 
 Critic scores come from `scripts/seed_from_kaggle.py`.
+
+To check whether listing pages still load and show the recorded price, run `python3 scripts/check_listings.py`. It respects `robots.txt` and only reports; add a new row to `data/winery_listings.csv` with today's `as_of` after confirming a listing by hand.
 
 `link_wineries.py` only links exact name matches and confirmed aliases. It writes everything else to `data/winery_match_review.csv`. To confirm a match, add the name and licence number to `data/winery_aliases.csv` and run it again.
 
