@@ -11,11 +11,10 @@ from app.schemas.winery import (
     WineryListingOut, WineryListResponse, WinerySaleOut, WinerySummary, WineryWineOut,
 )
 from app.services.winery_scoring import (
-    STANDARD_BOTTLE_LITRES, PeerContext, bottle_prices, build_peer_context, critic_scores,
+    CLOSED_LISTING_STATUSES, STANDARD_BOTTLE_LITRES, PeerContext, bottle_prices, build_peer_context, critic_scores,
     current_listing, latest_snapshot, overall_score, production_cases, score_winery,
 )
 
-_CLOSED_LISTING_STATUSES = {"Sold", "Sale approved", "Withdrawn"}
 RECHECK_AFTER_DAYS = 30
 
 _LICENCE_SOURCE = DataSourceOut(
@@ -96,7 +95,7 @@ def _matches_filters(summary: dict, q, region, for_sale, min_asking, max_asking,
         return False
     if region and summary["region"] != region:
         return False
-    if for_sale and (summary["listing_status"] is None or summary["listing_status"] in _CLOSED_LISTING_STATUSES):
+    if for_sale and (summary["listing_status"] is None or summary["listing_status"] in CLOSED_LISTING_STATUSES):
         return False
     if min_asking is not None and (asking is None or asking < min_asking):
         return False
@@ -117,7 +116,7 @@ def listings_due_for_recheck(listings, today: date) -> list:
     """Open listings last checked too long ago, oldest first. Expects each listing's newest row."""
     due = [
         l for l in listings
-        if l.status not in _CLOSED_LISTING_STATUSES and (today - l.as_of).days >= RECHECK_AFTER_DAYS
+        if l.status not in CLOSED_LISTING_STATUSES and (today - l.as_of).days >= RECHECK_AFTER_DAYS
     ]
     return sorted(due, key=lambda l: l.as_of)
 

@@ -41,6 +41,7 @@ class _Listing:
     includes_inventory: Optional[bool] = None
     includes_equipment: Optional[bool] = None
     as_of: date = date(2026, 10, 1)
+    status: Optional[str] = "Advertised"
 
 
 @dataclass
@@ -205,3 +206,25 @@ def test_recheck_lists_open_old_listings_oldest_first():
     fresh = _Row("Advertised", date(2026, 10, 15))
     sold = _Row("Sold", date(2026, 1, 1))
     assert listings_due_for_recheck([fresh, old, sold, older], today) == [older, old]
+
+
+@pytest.mark.parametrize("status", ["Sold", "Sale approved", "Withdrawn"])
+def test_closed_listing_doesnt_score_sale_terms(status):
+    listing = _Listing(asking_price=1_000_000, planted_acres=10, includes_licence=True, status=status)
+    winery = _Winery(listings=[listing])
+    assert price_per_planted_acre(winery) is None
+    land = score_land(winery, PeerContext(None, 100_000))
+    assert next(c for c in land.components if c.label == "Asking price per planted acre").score is None
+    assert next(c for c in land.components if c.label == "Planted acres").score is not None
+    assert next(c for c in score_operations(winery).components if c.label == "Included in sale").score is None
+
+
+def test_open_listing_still_scores_sale_terms():
+    winery = _Winery(listings=[_Listing(asking_price=1_000_000, planted_acres=10, status="Offer accepted")])
+    assert price_per_planted_acre(winery) == 100_000
+
+
+def test_newer_closed_row_overrides_older_open_row():
+    old = _Listing(asking_price=1_000_000, planted_acres=10, as_of=date(2026, 10, 1))
+    sold = _Listing(asking_price=1_000_000, planted_acres=10, as_of=date(2026, 11, 1), status="Sold")
+    assert price_per_planted_acre(_Winery(listings=[old, sold])) is None
