@@ -6,7 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.schemas.deal import DealAssumptions, FinancialYearIn
-from app.services.deal_analysis import adjusted_earnings, analyze_deal
+from app.services.deal_analysis import adjusted_earnings, analyze_deal, compare_deal, scenario_earnings
 
 
 def _deal(**overrides):
@@ -137,3 +137,36 @@ def test_rejects_negative_figures_and_unknown_channels():
         FinancialYearIn(revenue=-1)
     with pytest.raises(ValidationError):
         FinancialYearIn(channels=[{"channel": "other"}])
+
+
+def test_scenario_moves_revenue_and_costs():
+    year = _year(revenue=1000, cost_of_goods=300, operating_expenses=400)
+    assert scenario_earnings(year, 100, 0, 0) == 200
+    assert scenario_earnings(year, 100, -0.1, 0.1) == pytest.approx(30)
+
+
+def test_scenario_stays_unknown_without_figures():
+    assert scenario_earnings(_year(revenue=1000), 100, -0.1, 0.1) is None
+
+
+def test_compare_row_with_figures():
+    deal = _deal(name="A", id="1", stage="nda", asking_price=2000, property_value=1000, owner_salary=100)
+    year = _year(revenue=1000, cost_of_goods=300, operating_expenses=400, cases_sold=50)
+    row = compare_deal(deal, [year], (-0.5, 0.0), (0.1, 0.0))
+    assert row.property_share == 0.5
+    assert row.cases_sold == 50
+    assert [s.name for s in row.scenarios] == ["Worst", "Expected", "Best"]
+    assert row.scenarios[1].earnings == 200
+    assert row.scenarios[1].price_to_earnings == 10
+    assert row.scenarios[0].earnings == -300
+    assert row.scenarios[0].price_to_earnings is None
+    assert row.scenarios[2].earnings == 300
+
+
+def test_compare_row_without_figures_is_unknown_not_zero():
+    row = compare_deal(_deal(name="B", id="2", stage="researching"), [], (-0.1, 0.1), (0.1, -0.1))
+    assert row.revenue is None
+    assert row.total_cash_needed is None
+    assert row.analysis_year is None
+    assert all(s.earnings is None for s in row.scenarios)
+    assert row.unknown_count == 3

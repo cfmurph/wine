@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, Path, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 from app.models.wine import User
 from app.schemas.deal import (
-    DealAssumptions, DealCreate, DealFinancialsOut, DealItemCreate, DealItemOut, DealItemUpdate, DealOut, DealUpdate,
+    DealAssumptions, DealComparisonOut, DealCreate, DealFinancialsOut, DealItemCreate, DealItemOut, DealItemUpdate,
+    DealOut, DealUpdate,
     FinancialYearIn,
 )
 from app.services import deal_service
@@ -16,6 +17,20 @@ router = APIRouter(prefix="/users/me/deals", tags=["deals"])
 @router.get("", response_model=list[DealOut])
 async def list_deals(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     return await deal_service.list_deals(db, user.id)
+
+
+@router.get("/compare", response_model=list[DealComparisonOut])
+async def compare_deals(
+    worst_revenue: float = Query(-15, ge=-100, le=100, description="Percent change in revenue"),
+    worst_costs: float = Query(10, ge=-100, le=100, description="Percent change in costs"),
+    best_revenue: float = Query(10, ge=-100, le=100),
+    best_costs: float = Query(-5, ge=-100, le=100),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await deal_service.compare_deals(
+        db, user.id, (worst_revenue / 100, worst_costs / 100), (best_revenue / 100, best_costs / 100)
+    )
 
 
 @router.post("", response_model=DealOut)

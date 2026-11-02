@@ -3,7 +3,7 @@
 These checks flag questions for an accountant. They aren't a valuation.
 """
 
-from app.schemas.deal import AnalysisCheck, CheckLine
+from app.schemas.deal import AnalysisCheck, CheckLine, DealComparisonOut, ScenarioOut
 
 # Judgment calls, shown to the user in each check's note.
 CASE_TOLERANCE = 0.05
@@ -189,3 +189,42 @@ def analyze_deal(deal, years):
         _consistency_check(latest),
         _cash_check(deal),
     ]
+
+
+def scenario_earnings(year, owner_salary, revenue_change, cost_change):
+    """Adjusted earnings with revenue and all costs moved by the given fractions, e.g. -0.15."""
+    earnings = adjusted_earnings(year, owner_salary)
+    if earnings is None:
+        return None
+    return earnings + year.revenue * revenue_change - (year.cost_of_goods + year.operating_expenses) * cost_change
+
+
+def compare_deal(deal, years, worst, best):
+    """One comparison row. worst and best are (revenue_change, cost_change) fractions."""
+    analysis_year, checks = analyze_deal(deal, years)
+    latest = max(years, key=lambda y: y.fiscal_year, default=None)
+    cash = _cash_check(deal).lines[-1].value
+    scenarios = []
+    for name, (revenue_change, cost_change) in (("Worst", worst), ("Expected", (0.0, 0.0)), ("Best", best)):
+        earnings = scenario_earnings(latest, deal.owner_salary, revenue_change, cost_change) if latest else None
+        scenarios.append(ScenarioOut(
+            name=name,
+            revenue_change=revenue_change,
+            cost_change=cost_change,
+            earnings=earnings,
+            price_to_earnings=_ratio(deal.asking_price, earnings) if earnings and earnings > 0 else None,
+        ))
+    return DealComparisonOut(
+        deal_id=deal.id,
+        name=deal.name,
+        stage=deal.stage,
+        analysis_year=analysis_year,
+        asking_price=deal.asking_price,
+        revenue=latest.revenue if latest else None,
+        cases_sold=latest.cases_sold if latest else None,
+        property_share=_ratio(deal.property_value, deal.asking_price),
+        total_cash_needed=cash,
+        review_count=sum(c.status == "review" for c in checks),
+        unknown_count=sum(c.status == "unknown" for c in checks),
+        scenarios=scenarios,
+    )

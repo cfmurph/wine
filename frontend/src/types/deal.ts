@@ -81,3 +81,26 @@ export interface DealFinancials {
   analysis_year?: number | null;
   checks: AnalysisCheck[];
 }
+
+export interface DealScenario {
+  name: "Worst" | "Expected" | "Best";
+  revenue_change: number;
+  cost_change: number;
+  earnings?: number | null;
+  price_to_earnings?: number | null;
+}
+
+export interface DealComparison {
+  deal_id: string;
+  name: string;
+  stage: DealStage;
+  analysis_year?: number | null;
+  asking_price?: number | null;
+  revenue?: number | null;
+  cases_sold?: number | null;
+  property_share?: number | null;
+  total_cash_needed?: number | null;
+  review_count: number;
+  unknown_count: number;
+  scenarios: DealScenario[];
+}

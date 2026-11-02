@@ -114,3 +114,26 @@ class DealFinancialsOut(BaseModel):
     years: list[FinancialYearOut]
     analysis_year: Optional[int] = None
     checks: list[AnalysisCheck]
+
+
+class ScenarioOut(BaseModel):
+    name: Literal["Worst", "Expected", "Best"]
+    revenue_change: float
+    cost_change: float
+    earnings: Optional[float] = None
+    price_to_earnings: Optional[float] = None
+
+
+class DealComparisonOut(BaseModel):
+    deal_id: str
+    name: str
+    stage: str
+    analysis_year: Optional[int] = None
+    asking_price: Optional[float] = None
+    revenue: Optional[float] = None
+    cases_sold: Optional[float] = None
+    property_share: Optional[float] = None
+    total_cash_needed: Optional[float] = None
+    review_count: int
+    unknown_count: int
+    scenarios: list[ScenarioOut]

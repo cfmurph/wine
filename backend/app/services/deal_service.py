@@ -7,10 +7,10 @@ from sqlalchemy.orm import selectinload
 
 from app.models.wine import Deal, DealFinancial, DealItem, Winery
 from app.schemas.deal import (
-    DealAssumptions, DealCreate, DealFinancialsOut, DealItemCreate, DealItemUpdate, DealUpdate,
+    DealAssumptions, DealComparisonOut, DealCreate, DealFinancialsOut, DealItemCreate, DealItemUpdate, DealUpdate,
     FinancialYearIn, FinancialYearOut,
 )
-from app.services.deal_analysis import analyze_deal
+from app.services.deal_analysis import analyze_deal, compare_deal
 
 DEFAULT_ITEMS = [
     ("document", "Financial statements and tax returns, 3 to 5 years"),
@@ -157,3 +157,10 @@ async def delete_financial_year(db: AsyncSession, user_id: str, deal_id: str, fi
     deal.financials.remove(year)
     await db.flush()
     return _financials_out(deal)
+
+
+async def compare_deals(db: AsyncSession, user_id: str, worst, best) -> list[DealComparisonOut]:
+    deals = (await db.execute(
+        select(Deal).options(selectinload(Deal.financials)).where(Deal.user_id == user_id).order_by(Deal.created_at)
+    )).scalars()
+    return [compare_deal(deal, deal.financials, worst, best) for deal in deals]

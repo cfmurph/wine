@@ -14,7 +14,7 @@ import {
   WineryFilters,
   WineryListResponse,
 } from "@/types/winery";
-import { Deal, DealAssumptions, DealFinancials, DealItem, DealItemKind, DealUpdate, FinancialYearInput } from "@/types/deal";
+import { Deal, DealAssumptions, DealComparison, DealFinancials, DealItem, DealItemKind, DealUpdate, FinancialYearInput } from "@/types/deal";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
@@ -195,6 +195,16 @@ export async function updateDealItem(
 
 export async function deleteDealItem(dealId: string, itemId: string): Promise<void> {
   await api.delete(`/users/me/deals/${dealId}/items/${itemId}`);
+}
+
+export async function compareDeals(scenarios: {
+  worst_revenue: number;
+  worst_costs: number;
+  best_revenue: number;
+  best_costs: number;
+}): Promise<DealComparison[]> {
+  const { data } = await api.get<DealComparison[]>("/users/me/deals/compare", { params: scenarios });
+  return data;
 }
 
 export async function getDealFinancials(dealId: string): Promise<DealFinancials> {

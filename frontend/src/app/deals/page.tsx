@@ -38,7 +38,10 @@ export default function DealsPage() {
           <ClipboardList className="h-8 w-8 text-wine-700" />
           Deal Tracker
         </h1>
-        <p className="text-gray-500">Track each winery from first contact to offer. Only you can see your deals.</p>
+        <p className="text-gray-500">
+          Track each winery from first contact to offer. Only you can see your deals.{" "}
+          {deals && deals.length > 1 && <Link href="/deals/compare" className="underline">Compare deals</Link>}
+        </p>
       </div>
 
       {needsLogin && (
