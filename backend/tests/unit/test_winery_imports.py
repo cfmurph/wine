@@ -15,6 +15,8 @@ from scripts.import_bc_prices import observed_on_from_name, parse_row as parse_p
 from scripts.import_bc_wineries import parse_wineries
 from scripts.import_listings import parse_row as parse_listing_row
 from scripts.import_market_stats import parse_rows as parse_market_rows
+from scripts.import_sales import parse_row as parse_sale_row
+from app.schemas.winery import WinerySaleOut
 
 _KEY = "Licence Number (Licence) (Licence)"
 
@@ -143,3 +145,43 @@ def test_read_xlsx_uses_first_row_as_headers():
             f'<row><c r="A2" t="s"><v>1</v></c></row></sheetData></worksheet>',
         )
     assert read_xlsx(buffer.getvalue()) == {"One": [{"Name": "Test"}]}
+
+
+def test_parse_sale_keeps_blanks_unknown():
+    row = {
+        "name": " Test Winery ", "location": "Oliver", "sold_year": "2025", "sale_price": "2050000",
+        "last_asking_price": "", "total_acres": "10.5", "planted_acres": "", "sale_type": "Private sale",
+        "evidence": "News article opened", "notes": "", "source_url": "https://example.com",
+    }
+    record = parse_sale_row(row)
+    assert record["name"] == "Test Winery"
+    assert record["sold_year"] == 2025
+    assert record["sale_price"] == 2050000
+    assert record["last_asking_price"] is None
+    assert record["planted_acres"] is None
+    assert record["notes"] is None
+
+
+@pytest.mark.parametrize("missing", ["sale_price", "sold_year", "sale_type", "evidence"])
+def test_parse_sale_requires_core_fields(missing):
+    row = {"name": "A", "sold_year": "2025", "sale_price": "1", "sale_type": "Private sale", "evidence": "x", missing: ""}
+    with pytest.raises(ValueError):
+        parse_sale_row(row)
+
+
+def test_share_of_asking_unknown_without_asking():
+    base = {"id": "1", "name": "A", "sold_year": 2025, "sale_price": 2_000_000, "sale_type": "x", "evidence": "y"}
+    assert WinerySaleOut(**base, last_asking_price=4_000_000).share_of_asking == 0.5
+    assert WinerySaleOut(**base).share_of_asking is None
+
+
+def test_committed_sales_file_parses():
+    import csv
+    from scripts._import_common import DATA_DIR
+
+    with open(DATA_DIR / "winery_sales.csv", encoding="utf-8", newline="") as f:
+        records = [parse_sale_row(r) for r in csv.DictReader(f)]
+    assert records
+    assert len({(r["name"], r["sold_year"]) for r in records}) == len(records)
+    assert all(r["source_url"] for r in records)
+    assert all(len(r["evidence"]) <= 32 and len(r["sale_type"]) <= 32 for r in records)

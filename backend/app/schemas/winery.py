@@ -1,6 +1,6 @@
 from datetime import date
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
 
 class ScoreComponentOut(BaseModel):
@@ -122,6 +122,28 @@ class PriceBucketOut(BaseModel):
     count: int
 
 
+class WinerySaleOut(BaseModel):
+    id: str
+    name: str
+    location: Optional[str] = None
+    sold_year: int
+    sale_price: float
+    last_asking_price: Optional[float] = None
+    total_acres: Optional[float] = None
+    planted_acres: Optional[float] = None
+    sale_type: str
+    evidence: str
+    notes: Optional[str] = None
+    source_url: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
+    @computed_field
+    @property
+    def share_of_asking(self) -> Optional[float]:
+        return self.sale_price / self.last_asking_price if self.last_asking_price else None
+
+
 class MarketResponse(BaseModel):
     stats: List[MarketStatOut]
     stats_source: DataSourceOut
@@ -131,4 +153,5 @@ class MarketResponse(BaseModel):
     price_date: Optional[date] = None
     price_source: DataSourceOut
     listings: List[WineryListingOut]
+    sales: List[WinerySaleOut]
     reports: List[DataSourceOut]

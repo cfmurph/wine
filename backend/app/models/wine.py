@@ -203,6 +203,27 @@ class WineryListing(Base):
     winery = relationship("Winery", back_populates="listings")
 
 
+class WinerySale(Base):
+    """A reported completed or court-approved sale, entered by hand from public sources."""
+
+    __tablename__ = "winery_sale"
+
+    id = Column(String, primary_key=True, default=_uuid)
+    name = Column(String(256), nullable=False)
+    location = Column(String(256))
+    sold_year = Column(Integer, nullable=False)
+    sale_price = Column(Float, nullable=False)
+    last_asking_price = Column(Float)
+    total_acres = Column(Float)
+    planted_acres = Column(Float)
+    sale_type = Column(String(32), nullable=False)
+    evidence = Column(String(32), nullable=False)
+    notes = Column(Text)
+    source_url = Column(String(1024))
+
+    __table_args__ = (UniqueConstraint("name", "sold_year", name="uq_winery_sale"),)
+
+
 class MarketStat(Base):
     __tablename__ = "market_stat"
 
