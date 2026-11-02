@@ -27,7 +27,7 @@ from scripts.seed_from_kaggle import _extract_vintage
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.models.wine import PriceSnapshot, Wine
+from app.models import PriceSnapshot, Wine
 
 SOURCE = "bc_liquor_price_list"
 DATASET_URL = (

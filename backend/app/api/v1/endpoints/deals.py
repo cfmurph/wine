@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Path, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
-from app.models.wine import User
+from app.models import User
 from app.schemas.deal import (
     DealAssumptions, DealComparisonOut, DealCreate, DealFinancialsOut, DealItemCreate, DealItemOut, DealItemUpdate,
     DealOut, DealUpdate,

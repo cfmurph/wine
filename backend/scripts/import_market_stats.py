@@ -22,7 +22,7 @@ from scripts._import_common import make_session, read_source, resolve_dsn
 
 from sqlalchemy import select
 
-from app.models.wine import MarketStat
+from app.models import MarketStat
 
 SOURCE = "statcan_10_10_0010"
 URL = "https://www150.statcan.gc.ca/n1/en/tbl/csv/10100010-eng.zip"

@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.wine import Deal, DealFinancial, DealItem, Winery
+from app.models import Deal, DealFinancial, DealItem, Winery
 from app.schemas.deal import (
     DealAssumptions, DealComparisonOut, DealCreate, DealFinancialsOut, DealItemCreate, DealItemUpdate, DealUpdate,
     FinancialYearIn, FinancialYearOut, FinancingIn, FinancingOut,

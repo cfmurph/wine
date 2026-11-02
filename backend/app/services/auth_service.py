@@ -8,7 +8,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 
 from app.db.session import get_db
-from app.models.wine import User
+from app.models import User
 from app.schemas.user import UserCreate, TokenResponse
 from app.core.security import hash_password, verify_password, create_access_token, decode_access_token
 

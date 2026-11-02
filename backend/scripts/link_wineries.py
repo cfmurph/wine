@@ -20,7 +20,7 @@ from scripts._import_common import DATA_DIR, make_session, resolve_dsn
 
 from sqlalchemy import and_, or_, select
 
-from app.models.wine import Wine, Winery, WineryListing
+from app.models import Wine, Winery, WineryListing
 from app.services.winery_matching import WineryMatcher
 
 REVIEW_FILE = DATA_DIR / "winery_match_review.csv"

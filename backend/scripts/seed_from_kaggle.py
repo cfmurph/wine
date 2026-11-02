@@ -34,7 +34,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
-from app.models.wine import Wine, WineScore, WinePrice
+from app.models import Wine, WineScore, WinePrice
 from app.db.session import Base
 
 

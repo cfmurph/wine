@@ -22,7 +22,7 @@ from scripts._import_common import DATA_DIR, make_session, resolve_dsn
 
 from sqlalchemy import select
 
-from app.models.wine import WineryListing
+from app.models import WineryListing
 
 _FLOATS = ("asking_price", "previous_asking_price", "total_acres", "planted_acres")
 _BOOLEANS = ("includes_licence", "includes_brand", "includes_inventory", "includes_equipment")

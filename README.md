@@ -121,7 +121,7 @@ wine-app/
 ├── backend/
 │   ├── app/
 │   │   ├── api/v1/endpoints/   # FastAPI route handlers
-│   │   ├── models/             # SQLAlchemy ORM models
+│   │   ├── models/             # SQLAlchemy models by area: wine, user, winery, deal
 │   │   ├── schemas/            # Pydantic request/response schemas
 │   │   ├── services/           # Business logic (search, wine, pairing, cellar, auth)
 │   │   ├── adapters/           # External provider adapters

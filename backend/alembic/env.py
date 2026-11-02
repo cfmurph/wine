@@ -9,10 +9,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
 from app.db.session import Base
-from app.models.wine import (  # noqa: F401
-    Wine, WineScore, WinePrice, Pairing, User, UserWine,
-    Winery, PriceSnapshot, WineryListing, MarketStat,
-)
+import app.models  # noqa: F401
 from app.core.config import get_settings
 
 settings = get_settings()

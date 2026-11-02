@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import AsyncSessionLocal
-from app.models.wine import Wine
+from app.models import Wine
 from app.services.wine_service import enrich_wine_scores, enrich_wine_pairings, upsert_price
 from app.adapters.wine_searcher import WineSearcherAdapter
 from app.core.logging import logger

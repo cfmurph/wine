@@ -27,7 +27,7 @@ from scripts._import_common import make_session, resolve_dsn
 
 from sqlalchemy import select
 
-from app.models.wine import Deal, Winery, WineryLandCheck, WineryListing
+from app.models import Deal, Winery, WineryLandCheck, WineryListing
 
 _GEOCODER = "https://geocoder.api.gov.bc.ca/addresses.json?"
 _WFS = "https://openmaps.gov.bc.ca/geo/pub/ows?"
