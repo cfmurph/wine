@@ -245,3 +245,9 @@ def test_fire_summary_uses_real_values_and_handles_none():
     ]
     assert summarize_fires(rows) == (3, 2021, 387.4)
     assert summarize_fires([]) == (0, None, None)
+
+
+def test_startup_leaves_tables_to_migrations():
+    # A table created at startup makes the next "alembic upgrade head" fail with "already exists".
+    source = (Path(__file__).parent.parent.parent / "app" / "main.py").read_text()
+    assert "create_all" not in source

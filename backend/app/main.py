@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.logging import logger
-from app.db.session import engine, Base
+from app.db.session import engine
 
 settings = get_settings()
 
@@ -14,10 +14,6 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("startup", app=settings.APP_NAME, version=settings.APP_VERSION)
-    # Create tables on startup in dev mode. In production use Alembic migrations.
-    if settings.DEBUG:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
     yield
     logger.info("shutdown")
     await engine.dispose()
