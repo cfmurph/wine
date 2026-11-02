@@ -65,6 +65,28 @@ Copy `backend/.env.example` → `backend/.env` and set:
 
 ---
 
+## Winery Acquisition Tool
+
+`/wineries` and `/market` help screen licensed BC wineries as possible acquisitions.
+
+Load or refresh the data from `backend/`, in this order:
+
+```bash
+python3 scripts/import_bc_wineries.py   # Licensed wineries, service capacity, endorsements
+python3 scripts/import_bc_prices.py     # BC Liquor Store shelf prices (adds a monthly snapshot)
+python3 scripts/import_listings.py      # Hand-entered sale listings: data/winery_listings.csv
+python3 scripts/import_market_stats.py  # Statistics Canada annual wine sales
+python3 scripts/link_wineries.py        # Link wines and listings to wineries
+```
+
+Critic scores come from `scripts/seed_from_kaggle.py`.
+
+`link_wineries.py` only links exact name matches and confirmed aliases. It writes everything else to `data/winery_match_review.csv`. To confirm a match, add the name and licence number to `data/winery_aliases.csv` and run it again.
+
+Public data doesn't show any winery's bottle sales or costs. Scores are a screening aid, and the estimate on each winery page runs on the user's own assumptions.
+
+---
+
 ## Project Structure
 
 ```

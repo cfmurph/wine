@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { GitCompare, Plus, X, Star, DollarSign, Trophy } from "lucide-react";
-import { CompareItem, WineSearchResult } from "@/types/wine";
+import { CompareItem, SearchFilters, WineSearchResult } from "@/types/wine";
 import { compareWines, searchWines } from "@/lib/api";
 import { WineCard } from "@/components/wine/WineCard";
 import { SearchBar } from "@/components/wine/SearchBar";
@@ -17,10 +17,10 @@ export default function ComparePage() {
   const [comparing, setComparing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = async (filters: { q: string; [k: string]: unknown }) => {
+  const handleSearch = async (filters: SearchFilters) => {
     setLoading(true);
     try {
-      const data = await searchWines(filters as any, 1, 10);
+      const data = await searchWines(filters, 1, 10);
       setSearchResults(data.results);
     } finally {
       setLoading(false);

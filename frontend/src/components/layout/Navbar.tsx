@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Wine, Search, GitCompare, BookMarked, User } from "lucide-react";
+import { Wine, Search, GitCompare, BookMarked, User, Grape, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/search", label: "Search", icon: Search },
   { href: "/compare", label: "Compare", icon: GitCompare },
   { href: "/cellar", label: "My Cellar", icon: BookMarked },
+  { href: "/wineries", label: "Wineries", icon: Grape },
+  { href: "/market", label: "Market", icon: BarChart3 },
   { href: "/profile", label: "Profile", icon: User },
 ];
 
@@ -30,7 +32,7 @@ export default function Navbar() {
                 key={href}
                 href={href}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  "flex items-center gap-1.5 px-2 sm:px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   pathname === href
                     ? "bg-wine-700 text-white"
                     : "text-wine-200 hover:bg-wine-800 hover:text-white"
