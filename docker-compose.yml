@@ -55,5 +55,44 @@ services:
       - ./frontend/postcss.config.js:/app/postcss.config.js
       - ./frontend/next.config.js:/app/next.config.js
 
+  # Optional: docker compose --profile scheduled up -d
+  scheduler:
+    profiles: [scheduled]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: dev
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/wineapp
+    depends_on:
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    volumes:
+      - ./backend:/app
+      - scheduler_state:/var/lib/wineapp
+    command: ["python3", "scripts/scheduler.py"]
+    restart: unless-stopped
+
+  backup:
+    profiles: [scheduled]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: wineapp
+    depends_on:
+      backend:
+        condition: service_started
+    volumes:
+      - ./backups:/backups
+      - ./scripts/backup_loop.sh:/backup_loop.sh:ro
+    command: ["sh", "/backup_loop.sh"]
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  scheduler_state:

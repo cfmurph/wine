@@ -17,7 +17,7 @@ _XLSX_NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
 
 
 def fetch(url: str) -> bytes:
-    request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    request = urllib.request.Request(url, headers={"User-Agent": "WineApp-data-import/1.0"})
     with urllib.request.urlopen(request, timeout=90) as response:
         return response.read()
 
