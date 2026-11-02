@@ -75,7 +75,7 @@ jobs:
       - name: Start the staging stack from production images
         run: |
           cp deploy/staging.env.example deploy/staging.env
-          scripts/deploy.sh staging
+          COMPOSE_PROFILES="" scripts/deploy.sh staging
       - name: Load fixture data
         run: docker compose -p wine-staging --env-file deploy/staging.env -f docker-compose.prod.yml exec -T backend python3 - < e2e/seed_fixture.py
       - run: npm ci

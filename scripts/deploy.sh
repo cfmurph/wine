@@ -16,4 +16,7 @@ if [ "$ENVIRONMENT" = "production" ] && grep -q "CHANGE_ME" "$ENV_FILE"; then
   exit 2
 fi
 
+# COMPOSE_PROFILES="" leaves out the scheduler and backup services.
+export COMPOSE_PROFILES="${COMPOSE_PROFILES-scheduled}"
+
 docker compose -p "wine-$ENVIRONMENT" --env-file "$ENV_FILE" -f docker-compose.prod.yml up -d --build --wait

@@ -66,5 +66,36 @@ services:
       timeout: 5s
       retries: 10
 
+  # Started by scripts/deploy.sh. CI leaves these off, because it loads its own fixture data.
+  scheduler:
+    profiles: [scheduled]
+    build: *backend-build
+    restart: unless-stopped
+    environment: *backend-env
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      - scheduler_state:/var/lib/wineapp
+    command: ["python3", "scripts/scheduler.py"]
+
+  backup:
+    profiles: [scheduled]
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: ${POSTGRES_DB:?}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - backups:/backups
+      - ./scripts/backup_loop.sh:/backup_loop.sh:ro
+    command: ["sh", "/backup_loop.sh"]
+
 volumes:
   postgres_data:
+  scheduler_state:
+  backups:

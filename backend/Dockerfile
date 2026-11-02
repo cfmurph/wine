@@ -13,7 +13,7 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload
 # Production: no test tools, runs as a non-root user.
 FROM base AS prod
 RUN pip install --no-cache-dir -r requirements.txt
-RUN useradd --create-home --uid 1000 app
+RUN useradd --create-home --uid 1000 app && install -d -o app -g app /var/lib/wineapp
 COPY --chown=app:app . .
 USER app
 EXPOSE 8000

@@ -88,6 +88,15 @@ scripts/restore.sh replace backups/FILE.dump   # Replaces the live database, aft
 
 Backups can hold seller financials. `backups/` is ignored by git, but copy them only to encrypted storage.
 
+## Scheduled jobs
+
+`docker compose --profile scheduled up -d` adds two services. `scripts/deploy.sh` starts them in staging and production:
+
+- **`scheduler`** runs weekly: BC licences, prices, StatCan sales, listings, sales, linking and land checks, plus a report of listing pages that changed. A failed job retries after 24 hours. It keeps running while the stack is up, and catches up after downtime.
+- **`backup`** saves a checked backup daily. In development these go to `backups/`, and elsewhere to a Docker volume, keeping the newest 14. A volume is on the same machine, so copy backups off it.
+
+Results appear only in `docker compose logs scheduler backup`. Nothing sends alerts yet, so check them occasionally. Run a job now with `docker compose exec scheduler python3 scripts/scheduler.py --force`.
+
 ## Winery Acquisition Tool
 
 `/wineries` and `/market` help screen licensed BC wineries as possible acquisitions. `/advisors` lists BC specialists to review a purchase; its entries are hand-checked and live in the page file. `/deals` tracks each purchase for the logged-in user; deal data, including seller financials, stays in the database and must never be committed.
