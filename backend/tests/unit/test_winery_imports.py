@@ -15,6 +15,7 @@ from scripts.import_bc_prices import observed_on_from_name, parse_row as parse_p
 from scripts.import_bc_wineries import parse_wineries
 from scripts.import_listings import parse_row as parse_listing_row
 from scripts.import_market_stats import parse_rows as parse_market_rows
+from scripts.check_land import address_is_reliable, parse_alr, summarize_fires, summarize_wells
 from scripts.check_listings import classify_page, latest_open_listings, price_appears
 from scripts.import_sales import parse_row as parse_sale_row
 from app.schemas.winery import WinerySaleOut
@@ -216,3 +217,31 @@ def test_latest_open_listings_uses_newest_row_and_skips_closed():
         {"advertised_name": "B", "as_of": "2026-10-01", "status": "Sold"},
     ]
     assert [r["advertised_name"] for r in latest_open_listings(rows)] == ["B"]
+
+
+def test_address_needs_high_score_and_civic_match():
+    assert address_is_reliable({"score": 95, "matchPrecision": "CIVIC_NUMBER"})
+    assert not address_is_reliable({"score": 70, "matchPrecision": "CIVIC_NUMBER"})
+    assert not address_is_reliable({"score": 99, "matchPrecision": "LOCALITY"})
+    assert not address_is_reliable({})
+
+
+def test_parse_alr():
+    assert parse_alr([{"STATUS": "ALR"}]) is True
+    assert parse_alr([{"STATUS": "Exclusion"}]) is False
+    assert parse_alr([]) is False
+
+
+def test_wells_count_irrigation_case_insensitively():
+    rows = [{"INTENDED_WATER_USE": "Irrigation"}, {"INTENDED_WATER_USE": "irrigation"}, {"INTENDED_WATER_USE": None}]
+    assert summarize_wells(rows) == (3, 2)
+
+
+def test_fire_summary_uses_real_values_and_handles_none():
+    rows = [
+        {"FIRE_YEAR": 2014, "FIRE_SIZE_HECTARES": 1.5},
+        {"FIRE_YEAR": 2019, "FIRE_SIZE_HECTARES": 387.4},
+        {"FIRE_YEAR": 2021, "FIRE_SIZE_HECTARES": None},
+    ]
+    assert summarize_fires(rows) == (3, 2021, 387.4)
+    assert summarize_fires([]) == (0, None, None)

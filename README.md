@@ -76,6 +76,7 @@ python3 scripts/import_bc_wineries.py   # Licensed wineries, service capacity, e
 python3 scripts/import_bc_prices.py     # BC Liquor Store shelf prices (adds a monthly snapshot)
 python3 scripts/import_listings.py      # Hand-entered sale listings: data/winery_listings.csv
 python3 scripts/import_sales.py         # Hand-entered reported sales: data/winery_sales.csv
+python3 scripts/check_land.py           # Map checks for wineries with a listing or deal; run after link_wineries.py
 python3 scripts/import_market_stats.py  # Statistics Canada annual wine sales
 python3 scripts/link_wineries.py        # Link wines and listings to wineries
 ```

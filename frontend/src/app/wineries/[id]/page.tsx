@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { AcquisitionEstimate } from "@/components/winery/AcquisitionEstimate";
+import { LandRiskCard } from "@/components/winery/LandRiskCard";
 import { dataCoverage, formatWineryScore, ScoreBreakdown, ScreeningNotice } from "@/components/winery/ScoreBreakdown";
 import { WeightControls } from "@/components/winery/WeightControls";
 import { DEFAULT_WEIGHTS, WineryDetail, WineryListing } from "@/types/winery";
@@ -135,6 +136,8 @@ export default function WineryDetailPage() {
         <WeightControls weights={weights} onChange={setWeights} />
         <ScoreBreakdown winery={winery} />
       </Card>
+
+      <LandRiskCard check={winery.land_check} />
 
       <Card className="p-5 space-y-4">
         <h2 className="text-xl font-semibold text-gray-800">Estimate</h2>

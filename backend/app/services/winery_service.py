@@ -54,6 +54,7 @@ async def _load_wineries(db: AsyncSession) -> list[Winery]:
         selectinload(Winery.wines).selectinload(Wine.price_snapshots),
         selectinload(Winery.wines).selectinload(Wine.prices),
         selectinload(Winery.listings),
+        selectinload(Winery.land_check),
     )
     return list((await db.execute(stmt)).scalars().all())
 
@@ -180,6 +181,7 @@ def _winery_sources(winery: Winery) -> list[DataSourceOut]:
 def _detail(winery: Winery, peers: PeerContext, weights: dict[str, float]) -> WineryDetail:
     return WineryDetail(
         **_summary_fields(winery, peers, weights),
+        land_check=winery.land_check,
         licence_number=winery.licence_number,
         licensee=winery.licensee,
         street=winery.street,
