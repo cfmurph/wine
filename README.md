@@ -58,8 +58,23 @@ Copy `backend/.env.example` → `backend/.env` and set:
 | `WINE_SEARCHER_API_KEY` | Wine-Searcher API key |
 | `GLOBAL_WINE_SCORE_API_KEY` | Global Wine Score API token |
 | `SPOONACULAR_API_KEY` | Spoonacular API key |
-| `SECRET_KEY` | JWT signing secret (change in production) |
+| `ENVIRONMENT` | `development`, `staging` or `production` |
+| `SECRET_KEY` | Login token signing secret |
 | `DATABASE_URL` | PostgreSQL connection string |
+| `CORS_ORIGINS` | Comma-separated sites allowed to call the API |
+
+Staging and production refuse to start with a default secret, debug mode, the development database password or open CORS.
+
+## Deploying
+
+`docker-compose.prod.yml` runs production images, with a one-off `migrate` step before the backend starts. The database has no published port, and the app ports bind to `127.0.0.1`, so put a proxy that handles HTTPS in front.
+
+```bash
+cp deploy/staging.env.example deploy/staging.env   # Replace every CHANGE_ME
+scripts/deploy.sh staging                          # http://localhost:3100, separate data from development
+```
+
+Use `deploy/production.env.example` and `scripts/deploy.sh production` the same way. `NEXT_PUBLIC_API_URL` is built into the frontend, so changing it needs a rebuild.
 
 ---
 

@@ -33,3 +33,6 @@ e2e/node_modules/
 
 # Database backups
 backups/
+
+# Deployment secrets
+deploy/*.env
