@@ -3,11 +3,12 @@
 import { useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SearchBar } from "@/components/wine/SearchBar";
+import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { WineCard } from "@/components/wine/WineCard";
 import { SearchFilters, WineSearchResult } from "@/types/wine";
 import { searchWines } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
-import { ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function SearchPage() {
   const router = useRouter();
@@ -47,10 +48,7 @@ export default function SearchPage() {
       <SearchBar onSearch={(f) => handleSearch(f, 1)} loading={loading} />
 
       {error && (
-        <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-          <AlertCircle className="h-4 w-4 flex-shrink-0" />
-          {error}
-        </div>
+        <ErrorMessage>{error}</ErrorMessage>
       )}
 
       {results.length > 0 && (
