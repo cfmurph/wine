@@ -68,3 +68,11 @@ class TestToSearchResult:
         wine = _FakeWine(scores=[_FakeScore(score=None), _FakeScore(score=88.0)])
         result = _to_search_result(wine)  # type: ignore[arg-type]
         assert result.avg_score == 88.0
+
+
+def test_settings_ignore_unknown_variables(monkeypatch):
+    # A setting removed from the code but left in someone's .env must not stop the app starting.
+    from app.core.config import Settings
+
+    monkeypatch.setenv("REDIS_URL", "redis://old:6379/0")
+    assert not hasattr(Settings(), "REDIS_URL")
