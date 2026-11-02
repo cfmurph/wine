@@ -30,7 +30,6 @@ Backend (FastAPI + Python)
        └── SpoonacularAdapter      (food pairing, dish lookup)
        ▼
 PostgreSQL  (normalized wine, score, price, pairing, user tables)
-Redis       (optional caching — read-through, configurable TTLs)
 ```
 
 ---
@@ -61,7 +60,6 @@ Copy `backend/.env.example` → `backend/.env` and set:
 | `SPOONACULAR_API_KEY` | Spoonacular API key |
 | `SECRET_KEY` | JWT signing secret (change in production) |
 | `DATABASE_URL` | PostgreSQL connection string |
-| `REDIS_URL` | Redis connection string |
 
 ---
 

@@ -3,7 +3,7 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     # App
     APP_NAME: str = "Wine App API"
@@ -12,9 +12,6 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/wineapp"
-
-    # Redis
-    REDIS_URL: str = "redis://localhost:6379/0"
 
     # Auth / JWT
     SECRET_KEY: str = "change-me-in-production"
@@ -31,13 +28,6 @@ class Settings(BaseSettings):
     SPOONACULAR_API_KEY: str = ""
     SPOONACULAR_BASE_URL: str = "https://api.spoonacular.com"
 
-    # Cache TTL (seconds)
-    CACHE_TTL_SEARCH: int = 6 * 3600        # 6 hours
-    CACHE_TTL_WINE_DETAIL: int = 24 * 3600   # 24 hours
-    CACHE_TTL_PAIRING: int = 7 * 24 * 3600   # 7 days
-
-    # Rate limiting
-    RATE_LIMIT_SEARCH_PER_MINUTE: int = 30
 
 
 @lru_cache()
