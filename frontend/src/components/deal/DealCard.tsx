@@ -73,7 +73,10 @@ export function DealCard({ deal, onChange, onRemove, onError }: DealCardProps) {
               deal.name
             )}
           </h2>
-          <p className="text-sm text-gray-500">{doneCount} of {deal.items.length} checklist items done</p>
+          <p className="text-sm text-gray-500">
+            {doneCount} of {deal.items.length} checklist items done ·{" "}
+            <Link href={`/deals/${deal.id}/financials`} className="underline">Financials</Link>
+          </p>
         </div>
         <Button variant="ghost" size="sm" onClick={remove} aria-label={`Delete deal for ${deal.name}`}>
           <Trash2 className="h-4 w-4" />
