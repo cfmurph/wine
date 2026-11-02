@@ -108,6 +108,7 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user_wines = relationship("UserWine", back_populates="user", cascade="all, delete-orphan")
+    deals = relationship("Deal", back_populates="user", cascade="all, delete-orphan")
 
 
 class UserWine(Base):
@@ -217,3 +218,40 @@ class MarketStat(Base):
     __table_args__ = (
         UniqueConstraint("source", "period", "geography", "category", "metric", name="uq_market_stat"),
     )
+
+
+class Deal(Base):
+    __tablename__ = "deal"
+
+    id = Column(String, primary_key=True, default=_uuid)
+    user_id = Column(String, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, index=True)
+    winery_id = Column(String, ForeignKey("winery.id", ondelete="SET NULL"), index=True)
+    name = Column(String(256), nullable=False)
+    stage = Column(String(32), nullable=False, default="researching")
+    next_step = Column(String(512))
+    next_step_due = Column(Date)
+    notes = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (UniqueConstraint("user_id", "name", name="uq_deal_user_name"),)
+
+    user = relationship("User", back_populates="deals")
+    winery = relationship("Winery")
+    items = relationship(
+        "DealItem", back_populates="deal", cascade="all, delete-orphan", order_by="DealItem.position"
+    )
+
+
+class DealItem(Base):
+    __tablename__ = "deal_item"
+
+    id = Column(String, primary_key=True, default=_uuid)
+    deal_id = Column(String, ForeignKey("deal.id", ondelete="CASCADE"), nullable=False, index=True)
+    kind = Column(String(16), nullable=False)
+    title = Column(String(256), nullable=False)
+    assignee = Column(String(256))
+    done = Column(Boolean, nullable=False, default=False)
+    position = Column(Integer, nullable=False, default=0)
+
+    deal = relationship("Deal", back_populates="items")
