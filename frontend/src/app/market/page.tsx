@@ -163,7 +163,7 @@ export default function MarketPage() {
           </table>
         </div>
         <p className="text-xs text-gray-500">
-          Asking prices, entered by hand from public sources, with any reported sale price in the notes. "As of" is the date last checked. Listings change, so confirm details with the listing agent.
+          Asking prices, entered by hand from public sources, with any reported sale price in the notes. &quot;As of&quot; is the date last checked. Listings change, so confirm details with the listing agent.
         </p>
       </Card>
 

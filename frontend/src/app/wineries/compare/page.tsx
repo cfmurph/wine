@@ -41,17 +41,18 @@ function Comparison() {
   const [wineries, setWineries] = useState<WineryDetail[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const wineryIds = ids.split(",").filter(Boolean);
+  const validSelection = wineryIds.length >= 2 && wineryIds.length <= 4;
+
   useEffect(() => {
-    const wineryIds = ids.split(",").filter(Boolean);
-    if (wineryIds.length < 2 || wineryIds.length > 4) {
-      setError("Select 2–4 wineries from the list to compare them.");
-      return;
-    }
+    if (!validSelection) return;
     let current = true;
-    setError(null);
-    compareWineries(wineryIds, weights)
+    compareWineries(ids.split(",").filter(Boolean), weights)
       .then((data) => {
-        if (current) setWineries(data);
+        if (current) {
+          setWineries(data);
+          setError(null);
+        }
       })
       .catch(() => {
         if (current) setError("Comparison failed. Please try again.");
@@ -59,8 +60,9 @@ function Comparison() {
     return () => {
       current = false;
     };
-  }, [ids, weights]);
+  }, [ids, validSelection, weights]);
 
+  if (!validSelection) return <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">Select 2–4 wineries from the list to compare them.</p>;
   if (error) return <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">{error}</p>;
   if (!wineries) return <p className="text-gray-400 py-16 text-center">Loading…</p>;
 
