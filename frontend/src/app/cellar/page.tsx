@@ -156,7 +156,7 @@ export default function CellarPage() {
                     </div>
                   ) : (
                     entry.notes && (
-                      <p className="text-sm text-gray-500 italic">"{entry.notes}"</p>
+                      <p className="text-sm text-gray-500 italic">&quot;{entry.notes}&quot;</p>
                     )
                   )}
                 </div>
