@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Wine, Search, GitCompare, BookMarked, User, Grape, BarChart3 } from "lucide-react";
+import { Wine, Search, GitCompare, BookMarked, User, Users, Grape, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -11,6 +11,7 @@ const links = [
   { href: "/cellar", label: "My Cellar", icon: BookMarked },
   { href: "/wineries", label: "Wineries", icon: Grape },
   { href: "/market", label: "Market", icon: BarChart3 },
+  { href: "/advisors", label: "Advisors", icon: Users },
   { href: "/profile", label: "Profile", icon: User },
 ];
 
