@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BookMarked, Star, Pencil, Trash2, Wine } from "lucide-react";
-import { UserWine } from "@/types/wine";
+import { useFetch } from "@/hooks/useFetch";
 import { getCellar, removeFromCellar, updateCellarEntry } from "@/lib/api";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -24,24 +24,16 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function CellarPage() {
-  const [cellar, setCellar] = useState<UserWine[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, failed, loading, setData } = useFetch("cellar", getCellar);
+  const cellar = data ?? [];
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editNotes, setEditNotes] = useState("");
   const [editRating, setEditRating] = useState<number | undefined>();
 
-  useEffect(() => {
-    getCellar()
-      .then(setCellar)
-      .catch(() => setError("Please log in to view your cellar."))
-      .finally(() => setLoading(false));
-  }, []);
-
   const handleRemove = async (wine_id: string) => {
     try {
       await removeFromCellar(wine_id);
-      setCellar((prev) => prev.filter((w) => w.wine_id !== wine_id));
+      setData((prev) => prev?.filter((w) => w.wine_id !== wine_id) ?? null);
     } catch {
       alert("Failed to remove wine.");
     }
@@ -53,7 +45,7 @@ export default function CellarPage() {
         notes: editNotes,
         user_rating: editRating,
       });
-      setCellar((prev) => prev.map((w) => (w.wine_id === wine_id ? updated : w)));
+      setData((prev) => prev?.map((w) => (w.wine_id === wine_id ? updated : w)) ?? null);
       setEditingId(null);
     } catch {
       alert("Failed to update.");
@@ -70,10 +62,10 @@ export default function CellarPage() {
     );
   }
 
-  if (error) {
+  if (failed) {
     return (
       <div className="text-center py-20 space-y-4">
-        <p className="text-gray-500">{error}</p>
+        <p className="text-gray-500">Please log in to view your cellar.</p>
         <Link href="/profile" className="text-wine-700 underline text-sm">
           Log in
         </Link>

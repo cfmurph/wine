@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { AlertCircle, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { useFetch } from "@/hooks/useFetch";
 import { compareDeals } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
+import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { Input } from "@/components/ui/Input";
 import { DealComparison } from "@/types/deal";
 
@@ -22,8 +24,6 @@ const money = (value?: number | null) => (value == null ? "Unknown" : formatPric
 const multiple = (value?: number | null) => (value == null ? "—" : `${value.toFixed(1)}x`);
 
 export default function CompareDealsPage() {
-  const [deals, setDeals] = useState<DealComparison[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [inputs, setInputs] = useState<Record<ScenarioKey, string>>({
     worst_revenue: "-15",
     worst_costs: "10",
@@ -31,29 +31,17 @@ export default function CompareDealsPage() {
     best_costs: "-5",
   });
 
-  useEffect(() => {
-    const numbers = SCENARIO_FIELDS.map(([key]) => Number(inputs[key]));
-    if (SCENARIO_FIELDS.some(([key]) => inputs[key] === "") || numbers.some((n) => n < -100 || n > 100)) return;
-    let current = true;
+  const numbers = SCENARIO_FIELDS.map(([key]) => Number(inputs[key]));
+  const validInputs =
+    SCENARIO_FIELDS.every(([key]) => inputs[key] !== "") && numbers.every((n) => n >= -100 && n <= 100);
+  const { data: deals, failed } = useFetch(validInputs ? JSON.stringify(inputs) : null, () =>
     compareDeals({
       worst_revenue: Number(inputs.worst_revenue),
       worst_costs: Number(inputs.worst_costs),
       best_revenue: Number(inputs.best_revenue),
       best_costs: Number(inputs.best_costs),
     })
-      .then((data) => {
-        if (current) {
-          setDeals(data);
-          setError(null);
-        }
-      })
-      .catch(() => {
-        if (current) setError("Couldn't load your deals. Check that you're logged in.");
-      });
-    return () => {
-      current = false;
-    };
-  }, [inputs]);
+  );
 
   const rows: [string, (d: DealComparison) => string][] = [
     ["Stage", (d) => d.stage],
@@ -89,12 +77,7 @@ export default function CompareDealsPage() {
         The scenario percentages are starting assumptions, not forecasts. Set them with your accountant for each winery. Price multiples use the asking price, not a negotiated one.
       </p>
 
-      {error && (
-        <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-          <AlertCircle className="h-4 w-4 flex-shrink-0" />
-          {error}
-        </div>
-      )}
+      {failed && <ErrorMessage>Couldn&apos;t load your deals. Check that you&apos;re logged in.</ErrorMessage>}
 
       <Card className="p-5 space-y-3">
         <h2 className="text-xl font-semibold text-gray-800">Scenarios</h2>

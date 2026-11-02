@@ -1,18 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertCircle, GitCompare, Grape } from "lucide-react";
+import { GitCompare, Grape } from "lucide-react";
+import { useFetch } from "@/hooks/useFetch";
 import { getWineries } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { Input } from "@/components/ui/Input";
 import { dataCoverage, formatWineryScore, ScreeningNotice } from "@/components/winery/ScoreBreakdown";
 import { WeightControls } from "@/components/winery/WeightControls";
-import { DEFAULT_WEIGHTS, WineryFilters, WinerySummary } from "@/types/winery";
+import { DEFAULT_WEIGHTS, WineryFilters } from "@/types/winery";
 
 type SortKey = "overall_score" | "name" | "region" | "asking_price" | "median_bottle_price" | "avg_critic_score";
 
@@ -34,34 +36,16 @@ export default function WineriesPage() {
     q: "", region: "", forSale: false, minAsking: "", maxAsking: "", minCases: "",
   });
   const [weights, setWeights] = useState(DEFAULT_WEIGHTS);
-  const [results, setResults] = useState<WinerySummary[]>([]);
-  const [regions, setRegions] = useState<string[]>([]);
   const [sort, setSort] = useState<{ key: SortKey; descending: boolean }>({ key: "overall_score", descending: true });
   const [selected, setSelected] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let current = true;
-    const timer = setTimeout(async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await getWineries(filters, weights);
-        if (!current) return;
-        setResults(data.results);
-        setRegions(data.regions);
-      } catch {
-        if (current) setError("Couldn't load wineries. Please try again.");
-      } finally {
-        if (current) setLoading(false);
-      }
-    }, SEARCH_DELAY_MS);
-    return () => {
-      current = false;
-      clearTimeout(timer);
-    };
-  }, [filters, weights]);
+  const { data, failed, loading } = useFetch(
+    JSON.stringify([filters, weights]),
+    () => getWineries(filters, weights),
+    SEARCH_DELAY_MS
+  );
+  const results = useMemo(() => data?.results ?? [], [data]);
+  const regions = data?.regions ?? [];
 
   const sorted = useMemo(() => {
     const direction = sort.descending ? -1 : 1;
@@ -163,11 +147,8 @@ export default function WineriesPage() {
         <WeightControls weights={weights} onChange={setWeights} />
       </Card>
 
-      {error && (
-        <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-          <AlertCircle className="h-4 w-4 flex-shrink-0" />
-          {error}
-        </div>
+      {failed && (
+        <ErrorMessage>Couldn&apos;t load wineries. Please try again.</ErrorMessage>
       )}
 
       <div className="flex items-center justify-between gap-3">
@@ -233,7 +214,7 @@ export default function WineriesPage() {
             ))}
           </tbody>
         </table>
-        {!loading && sorted.length === 0 && !error && (
+        {!loading && sorted.length === 0 && !failed && (
           <p className="text-center py-12 text-gray-400">No wineries match these filters.</p>
         )}
       </div>

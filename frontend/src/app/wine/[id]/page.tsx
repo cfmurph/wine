@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   MapPin, Wine, Star, DollarSign, Utensils,
   BookMarked, AlertCircle, ArrowLeft,
 } from "lucide-react";
-import { WineDetail } from "@/types/wine";
+import { useFetch } from "@/hooks/useFetch";
 import { getWineDetail, addToCellar } from "@/lib/api";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -17,17 +17,8 @@ import { formatPrice, formatScore, getStyleColor } from "@/lib/utils";
 export default function WineDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [wine, setWine] = useState<WineDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: wine, failed, loading } = useFetch(id, () => getWineDetail(id));
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
-
-  useEffect(() => {
-    getWineDetail(id)
-      .then(setWine)
-      .catch(() => setError("Could not load wine details."))
-      .finally(() => setLoading(false));
-  }, [id]);
 
   const handleSave = async (status: "favorite" | "cellar" | "want_to_try" | "tried") => {
     try {
@@ -41,7 +32,7 @@ export default function WineDetailPage() {
   };
 
   if (loading) return <WineDetailSkeleton />;
-  if (error || !wine) return <ErrorState message={error ?? "Wine not found"} />;
+  if (failed || !wine) return <ErrorState message={failed ? "Could not load wine details." : "Wine not found"} />;
 
   const avgScore = wine.scores.length
     ? wine.scores.reduce((s, r) => s + (r.score ?? 0), 0) / wine.scores.filter((r) => r.score).length

@@ -1,23 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { AlertCircle, ClipboardList } from "lucide-react";
+import { ClipboardList } from "lucide-react";
+import { useFetch } from "@/hooks/useFetch";
 import { createDeal, getDeals } from "@/lib/api";
 import { DealCard } from "@/components/deal/DealCard";
+import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Deal } from "@/types/deal";
 
 export default function DealsPage() {
-  const [deals, setDeals] = useState<Deal[] | null>(null);
-  const [needsLogin, setNeedsLogin] = useState(false);
+  const { data: deals, failed: needsLogin, setData: setDeals } = useFetch("deals", getDeals);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState("");
-
-  useEffect(() => {
-    getDeals().then(setDeals).catch(() => setNeedsLogin(true));
-  }, []);
 
   const addDeal = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,10 +46,7 @@ export default function DealsPage() {
         </p>
       )}
       {error && (
-        <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-          <AlertCircle className="h-4 w-4 flex-shrink-0" />
-          {error}
-        </div>
+        <ErrorMessage>{error}</ErrorMessage>
       )}
 
       {deals && (
@@ -80,8 +73,8 @@ export default function DealsPage() {
             <DealCard
               key={deal.id}
               deal={deal}
-              onChange={(saved) => setDeals((current) => current!.map((d) => (d.id === saved.id ? saved : d)))}
-              onRemove={(id) => setDeals((current) => current!.filter((d) => d.id !== id))}
+              onChange={(saved) => setDeals((current) => current?.map((d) => (d.id === saved.id ? saved : d)) ?? null)}
+              onRemove={(id) => setDeals((current) => current?.filter((d) => d.id !== id) ?? null)}
               onError={setError}
             />
           ))}

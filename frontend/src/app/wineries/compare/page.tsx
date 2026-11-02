@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, GitCompare } from "lucide-react";
+import { useFetch } from "@/hooks/useFetch";
 import { compareWineries } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
@@ -38,32 +39,14 @@ const ROWS: { label: string; render: (winery: WineryDetail) => React.ReactNode }
 function Comparison() {
   const ids = useSearchParams().get("ids") ?? "";
   const [weights, setWeights] = useState(DEFAULT_WEIGHTS);
-  const [wineries, setWineries] = useState<WineryDetail[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
   const wineryIds = ids.split(",").filter(Boolean);
   const validSelection = wineryIds.length >= 2 && wineryIds.length <= 4;
-
-  useEffect(() => {
-    if (!validSelection) return;
-    let current = true;
-    compareWineries(ids.split(",").filter(Boolean), weights)
-      .then((data) => {
-        if (current) {
-          setWineries(data);
-          setError(null);
-        }
-      })
-      .catch(() => {
-        if (current) setError("Comparison failed. Please try again.");
-      });
-    return () => {
-      current = false;
-    };
-  }, [ids, validSelection, weights]);
+  const { data: wineries, failed } = useFetch(validSelection ? `${ids}:${JSON.stringify(weights)}` : null, () =>
+    compareWineries(wineryIds, weights)
+  );
 
   if (!validSelection) return <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">Select 2–4 wineries from the list to compare them.</p>;
-  if (error) return <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">{error}</p>;
+  if (failed) return <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">Comparison failed. Please try again.</p>;
   if (!wineries) return <p className="text-gray-400 py-16 text-center">Loading…</p>;
 
   return (

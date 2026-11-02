@@ -1,19 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { AlertCircle, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { useFetch } from "@/hooks/useFetch";
 import { createDeal, getWinery } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { AcquisitionEstimate } from "@/components/winery/AcquisitionEstimate";
 import { LandRiskCard } from "@/components/winery/LandRiskCard";
 import { dataCoverage, formatWineryScore, ScoreBreakdown, ScreeningNotice } from "@/components/winery/ScoreBreakdown";
 import { WeightControls } from "@/components/winery/WeightControls";
-import { DEFAULT_WEIGHTS, WineryDetail, WineryListing } from "@/types/winery";
+import { DEFAULT_WEIGHTS, WineryListing } from "@/types/winery";
 
 function stated(value?: boolean | null) {
   return value == null ? "Not stated" : value ? "Yes" : "No";
@@ -58,8 +60,7 @@ function ListingCard({ listing }: { listing: WineryListing }) {
 export default function WineryDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [weights, setWeights] = useState(DEFAULT_WEIGHTS);
-  const [winery, setWinery] = useState<WineryDetail | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { data: winery, failed } = useFetch(`${id}:${JSON.stringify(weights)}`, () => getWinery(id, weights));
   const [tracking, setTracking] = useState<string | null>(null);
 
   const trackDeal = () =>
@@ -67,28 +68,7 @@ export default function WineryDetailPage() {
       .then(() => setTracking("Added to your deals."))
       .catch(() => setTracking("Log in to track this deal."));
 
-  useEffect(() => {
-    let current = true;
-    getWinery(id, weights)
-      .then((data) => {
-        if (current) setWinery(data);
-      })
-      .catch(() => {
-        if (current) setError("Couldn't load this winery.");
-      });
-    return () => {
-      current = false;
-    };
-  }, [id, weights]);
-
-  if (error) {
-    return (
-      <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-        <AlertCircle className="h-4 w-4 flex-shrink-0" />
-        {error}
-      </div>
-    );
-  }
+  if (failed) return <ErrorMessage>Couldn&apos;t load this winery.</ErrorMessage>;
   if (!winery) return <p className="text-gray-400 py-16 text-center">Loading…</p>;
 
   return (
