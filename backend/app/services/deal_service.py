@@ -8,9 +8,10 @@ from sqlalchemy.orm import selectinload
 from app.models.wine import Deal, DealFinancial, DealItem, Winery
 from app.schemas.deal import (
     DealAssumptions, DealComparisonOut, DealCreate, DealFinancialsOut, DealItemCreate, DealItemUpdate, DealUpdate,
-    FinancialYearIn, FinancialYearOut,
+    FinancialYearIn, FinancialYearOut, FinancingIn, FinancingOut,
 )
 from app.services.deal_analysis import analyze_deal, compare_deal
+from app.services.deal_financing import model_financing
 
 DEFAULT_ITEMS = [
     ("document", "Financial statements and tax returns, 3 to 5 years"),
@@ -164,3 +165,8 @@ async def compare_deals(db: AsyncSession, user_id: str, worst, best) -> list[Dea
         select(Deal).options(selectinload(Deal.financials)).where(Deal.user_id == user_id).order_by(Deal.created_at)
     )).scalars()
     return [compare_deal(deal, deal.financials, worst, best) for deal in deals]
+
+
+async def get_financing(db: AsyncSession, user_id: str, deal_id: str, payload: FinancingIn) -> FinancingOut:
+    deal = await _deal_with_financials(db, user_id, deal_id)
+    return model_financing(deal, deal.financials, payload)

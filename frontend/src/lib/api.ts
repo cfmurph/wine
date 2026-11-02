@@ -14,7 +14,7 @@ import {
   WineryFilters,
   WineryListResponse,
 } from "@/types/winery";
-import { Deal, DealAssumptions, DealComparison, DealFinancials, DealItem, DealItemKind, DealUpdate, FinancialYearInput } from "@/types/deal";
+import { Deal, DealAssumptions, DealComparison, DealFinancials, DealItem, DealItemKind, DealUpdate, FinancialYearInput, FinancingInput, FinancingResult } from "@/types/deal";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
@@ -224,6 +224,11 @@ export async function saveFinancialYear(dealId: string, year: number, payload: F
 
 export async function deleteFinancialYear(dealId: string, year: number): Promise<DealFinancials> {
   const { data } = await api.delete<DealFinancials>(`/users/me/deals/${dealId}/financials/years/${year}`);
+  return data;
+}
+
+export async function modelFinancing(dealId: string, payload: FinancingInput): Promise<FinancingResult> {
+  const { data } = await api.post<FinancingResult>(`/users/me/deals/${dealId}/financing`, payload);
   return data;
 }
 

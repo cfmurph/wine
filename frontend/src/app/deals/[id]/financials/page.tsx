@@ -9,6 +9,7 @@ import { formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { FinancingModel } from "@/components/deal/FinancingModel";
 import { Input } from "@/components/ui/Input";
 import { AnalysisCheck, ChannelFigures, CheckLine, DealAssumptions, DealFinancials, FinancialYear, FinancialYearInput, SalesChannel } from "@/types/deal";
 
@@ -229,6 +230,8 @@ export default function DealFinancialsPage() {
           ))}
         </div>
       </Card>
+
+      <FinancingModel dealId={id} refreshKey={data} />
 
       <Card className="p-5">
         <form onSubmit={saveAssumptions} className="space-y-4">

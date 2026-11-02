@@ -137,3 +137,31 @@ class DealComparisonOut(BaseModel):
     review_count: int
     unknown_count: int
     scenarios: list[ScenarioOut]
+
+
+class FinancingIn(BaseModel):
+    purchase_price: Money = Field(None, ge=0)
+    down_payment_percent: float = Field(ge=0, le=100)
+    annual_rate_percent: float = Field(ge=0, le=40)
+    amortization_years: int = Field(ge=1, le=40)
+    available_cash: Money = Field(None, ge=0)
+    min_coverage: float = Field(1.25, ge=1, le=3)
+    rate_stress_points: float = Field(2.0, ge=0, le=20)
+
+
+class FinancingOut(BaseModel):
+    purchase_price: Optional[float] = None
+    down_payment: Optional[float] = None
+    loan: Optional[float] = None
+    monthly_payment: Optional[float] = None
+    annual_debt_service: Optional[float] = None
+    adjusted_earnings: Optional[float] = None
+    analysis_year: Optional[int] = None
+    coverage: Optional[float] = None
+    stressed_coverage: Optional[float] = None
+    max_loan_from_earnings: Optional[float] = None
+    other_cash_costs: float
+    missing_cash_costs: list[str]
+    cash_needed: Optional[float] = None
+    cash_shortfall: Optional[float] = None
+    max_price_for_cash: Optional[float] = None

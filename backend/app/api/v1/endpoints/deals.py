@@ -6,7 +6,7 @@ from app.models.wine import User
 from app.schemas.deal import (
     DealAssumptions, DealComparisonOut, DealCreate, DealFinancialsOut, DealItemCreate, DealItemOut, DealItemUpdate,
     DealOut, DealUpdate,
-    FinancialYearIn,
+    FinancialYearIn, FinancingIn, FinancingOut,
 )
 from app.services import deal_service
 from app.services.auth_service import get_current_user
@@ -103,3 +103,10 @@ async def delete_financial_year(
     deal_id: str, fiscal_year: int, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
     return await deal_service.delete_financial_year(db, user.id, deal_id, fiscal_year)
+
+
+@router.post("/{deal_id}/financing", response_model=FinancingOut)
+async def model_financing(
+    deal_id: str, payload: FinancingIn, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+):
+    return await deal_service.get_financing(db, user.id, deal_id, payload)

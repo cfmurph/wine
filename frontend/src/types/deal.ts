@@ -104,3 +104,31 @@ export interface DealComparison {
   unknown_count: number;
   scenarios: DealScenario[];
 }
+
+export interface FinancingInput {
+  purchase_price?: number | null;
+  down_payment_percent: number;
+  annual_rate_percent: number;
+  amortization_years: number;
+  available_cash?: number | null;
+  min_coverage: number;
+  rate_stress_points: number;
+}
+
+export interface FinancingResult {
+  purchase_price?: number | null;
+  down_payment?: number | null;
+  loan?: number | null;
+  monthly_payment?: number | null;
+  annual_debt_service?: number | null;
+  adjusted_earnings?: number | null;
+  analysis_year?: number | null;
+  coverage?: number | null;
+  stressed_coverage?: number | null;
+  max_loan_from_earnings?: number | null;
+  other_cash_costs: number;
+  missing_cash_costs: string[];
+  cash_needed?: number | null;
+  cash_shortfall?: number | null;
+  max_price_for_cash?: number | null;
+}
