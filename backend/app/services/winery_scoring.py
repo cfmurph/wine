@@ -8,6 +8,7 @@ scale below is a judgment call, shown to the user alongside the score.
 from dataclasses import dataclass, field
 from statistics import median
 
+CLOSED_LISTING_STATUSES = {"Sold", "Sale approved", "Withdrawn"}
 STANDARD_BOTTLE_LITRES = 0.75
 CRITIC_SCORE_FLOOR = 80
 CRITIC_SCORE_CEILING = 100
@@ -69,13 +70,19 @@ def current_listing(winery):
     return max(winery.listings, key=lambda l: l.as_of, default=None)
 
 
+def open_listing(winery):
+    """The current listing, unless that sale has closed. A closed sale's terms no longer apply to a buyer."""
+    listing = current_listing(winery)
+    return None if listing is None or listing.status in CLOSED_LISTING_STATUSES else listing
+
+
 def planted_acres(winery) -> float | None:
     listing = current_listing(winery)
     return winery.vineyard_acres or (listing.planted_acres if listing else None)
 
 
 def price_per_planted_acre(winery) -> float | None:
-    listing = current_listing(winery)
+    listing = open_listing(winery)
     acres = listing.planted_acres if listing else None
     return listing.asking_price / acres if listing and listing.asking_price and acres else None
 
@@ -180,8 +187,8 @@ def score_operations(winery) -> SubScore:
     if cases:
         production = Component("Production size", _scaled(cases / FULL_PRODUCTION_CASES), f"{cases:,} {unit}")
 
-    listing = current_listing(winery)
-    inclusions = Component("Included in sale", None, "No listing states what's included")
+    listing = open_listing(winery)
+    inclusions = Component("Included in sale", None, "No open listing states what's included")
     if listing:
         items = {
             "licence": listing.includes_licence,
