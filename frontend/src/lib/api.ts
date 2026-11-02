@@ -7,6 +7,13 @@ import {
   CompareItem,
   SearchFilters,
 } from "@/types/wine";
+import {
+  MarketData,
+  ScoreWeights,
+  WineryDetail,
+  WineryFilters,
+  WineryListResponse,
+} from "@/types/winery";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
@@ -106,6 +113,46 @@ export async function updateCellarEntry(
 
 export async function removeFromCellar(wine_id: string): Promise<void> {
   await api.delete(`/users/me/cellar/${wine_id}`);
+}
+
+// ---- Wineries ----
+
+export async function getWineries(
+  filters: WineryFilters,
+  weights: ScoreWeights
+): Promise<WineryListResponse> {
+  const params: Record<string, string | number | boolean> = { ...weights };
+  if (filters.q) params.q = filters.q;
+  if (filters.region) params.region = filters.region;
+  if (filters.forSale) params.for_sale = true;
+  if (filters.minAsking) params.min_asking = filters.minAsking;
+  if (filters.maxAsking) params.max_asking = filters.maxAsking;
+  if (filters.minCases) params.min_cases = filters.minCases;
+  const { data } = await api.get<WineryListResponse>("/wineries", { params });
+  return data;
+}
+
+export async function getWinery(id: string, weights: ScoreWeights): Promise<WineryDetail> {
+  const { data } = await api.get<WineryDetail>(`/wineries/${id}`, { params: weights });
+  return data;
+}
+
+export async function compareWineries(
+  wineryIds: string[],
+  weights: ScoreWeights
+): Promise<WineryDetail[]> {
+  const { data } = await api.post<{ wineries: WineryDetail[] }>("/wineries/compare", {
+    winery_ids: wineryIds,
+    ...weights,
+  });
+  return data.wineries;
+}
+
+// ---- Market ----
+
+export async function getMarket(): Promise<MarketData> {
+  const { data } = await api.get<MarketData>("/market");
+  return data;
 }
 
 // ---- Auth ----
