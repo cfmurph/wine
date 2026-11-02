@@ -10,7 +10,7 @@ from app.services.winery_scoring import (
     DEFAULT_WEIGHTS, PeerContext, SubScore, build_peer_context, overall_score, price_per_planted_acre,
     score_brand, score_land, score_operations, score_tourism, score_winery,
 )
-from app.services.winery_service import bucket_prices
+from app.services.winery_service import _matches_filters, bucket_prices, latest_listings
 
 
 @dataclass
@@ -170,3 +170,24 @@ def test_price_buckets_cover_every_price_once():
     assert buckets[0].count == 1
     assert buckets[-1].label == "$60+"
     assert buckets[-1].count == 2
+
+
+@pytest.mark.parametrize(
+    "status,expected",
+    [("Advertised", True), ("Offer accepted", True), ("Sold", False), ("Sale approved", False), ("Withdrawn", False), (None, False)],
+)
+def test_for_sale_filter_hides_closed_listings(status, expected):
+    summary = {"name": "Test", "city": None, "region": None, "asking_price": None, "production_cases": None, "listing_status": status}
+    assert _matches_filters(summary, None, None, True, None, None, None) is expected
+
+
+def test_latest_listings_keeps_newest_row_in_given_order():
+    @dataclass
+    class _Row:
+        advertised_name: str
+        as_of: date
+
+    old = _Row("Maverick", date(2026, 10, 1))
+    new = _Row("Maverick", date(2026, 11, 1))
+    other = _Row("Hainle", date(2026, 10, 1))
+    assert latest_listings([other, old, new]) == [other, new]

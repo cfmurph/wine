@@ -14,6 +14,8 @@ from app.services.winery_scoring import (
     current_listing, latest_snapshot, overall_score, production_cases, score_winery,
 )
 
+_CLOSED_LISTING_STATUSES = {"Sold", "Sale approved", "Withdrawn"}
+
 _LICENCE_SOURCE = DataSourceOut(
     label="BC licensed establishments workbook",
     url="https://www2.gov.bc.ca/gov/content?id=6D2A8A0AC8C64BECB9B1C2AD7FB33006",
@@ -91,7 +93,7 @@ def _matches_filters(summary: dict, q, region, for_sale, min_asking, max_asking,
         return False
     if region and summary["region"] != region:
         return False
-    if for_sale and summary["listing_status"] is None:
+    if for_sale and (summary["listing_status"] is None or summary["listing_status"] in _CLOSED_LISTING_STATUSES):
         return False
     if min_asking is not None and (asking is None or asking < min_asking):
         return False
@@ -100,6 +102,12 @@ def _matches_filters(summary: dict, q, region, for_sale, min_asking, max_asking,
     if min_cases is not None and (cases is None or cases < min_cases):
         return False
     return True
+
+
+def latest_listings(listings) -> list:
+    """Keep each listing's newest row, in the given order. Older rows are its history."""
+    newest = {l.advertised_name: l for l in sorted(listings, key=lambda l: l.as_of)}
+    return [l for l in listings if newest[l.advertised_name] is l]
 
 
 async def list_wineries(
@@ -221,6 +229,6 @@ async def get_market(db: AsyncSession) -> MarketResponse:
         priced_bottles=len(prices),
         price_date=latest_date,
         price_source=_PRICE_SOURCE,
-        listings=[WineryListingOut.model_validate(l) for l in listings],
+        listings=[WineryListingOut.model_validate(l) for l in latest_listings(listings)],
         reports=_MARKET_REPORTS,
     )
