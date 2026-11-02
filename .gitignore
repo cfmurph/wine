@@ -30,3 +30,6 @@ next-env.d.ts
 
 # Browser checks
 e2e/node_modules/
+
+# Database backups
+backups/
