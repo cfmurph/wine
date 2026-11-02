@@ -76,3 +76,51 @@ def test_settings_ignore_unknown_variables(monkeypatch):
 
     monkeypatch.setenv("REDIS_URL", "redis://old:6379/0")
     assert not hasattr(Settings(), "REDIS_URL")
+
+
+_DEPLOYED = {
+    "ENVIRONMENT": "production",
+    "SECRET_KEY": "x" * 40,
+    "DATABASE_URL": "postgresql+asyncpg://app:real-password@db:5432/wine",
+    "CORS_ORIGINS": "https://wine.example.com",
+    "DEBUG": False,
+}
+
+
+def _settings(**overrides):
+    from app.core.config import Settings
+
+    return Settings(_env_file=None, **{**_DEPLOYED, **overrides})
+
+
+def test_safe_deployed_settings_are_accepted():
+    settings = _settings(CORS_ORIGINS="https://a.example.com, https://b.example.com")
+    assert settings.cors_origin_list == ["https://a.example.com", "https://b.example.com"]
+
+
+@pytest.mark.parametrize(
+    "unsafe",
+    [
+        {"SECRET_KEY": "change-me-in-production"},
+        {"SECRET_KEY": "short"},
+        {"DEBUG": True},
+        {"DATABASE_URL": "postgresql+asyncpg://postgres:postgres@db:5432/wine"},
+        {"DATABASE_URL": "postgresql+asyncpg://app:pw@localhost:5432/wine"},
+        {"CORS_ORIGINS": "*"},
+        {"CORS_ORIGINS": ""},
+    ],
+)
+@pytest.mark.parametrize("environment", ["staging", "production"])
+def test_deployed_environments_refuse_unsafe_settings(environment, unsafe):
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
+        _settings(ENVIRONMENT=environment, **unsafe)
+
+
+def test_development_keeps_working_defaults():
+    from app.core.config import Settings
+
+    settings = Settings(_env_file=None, ENVIRONMENT="development")
+    assert settings.SECRET_KEY
+    assert settings.cors_origin_list == ["http://localhost:3000"]
