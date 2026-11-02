@@ -125,7 +125,7 @@ export default function MarketPage() {
       </Card>
 
       <Card className="p-5 space-y-4">
-        <h2 className="text-xl font-semibold text-gray-800">Wineries advertised for sale</h2>
+        <h2 className="text-xl font-semibold text-gray-800">Winery sale listings</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -148,18 +148,22 @@ export default function MarketPage() {
                     )}
                     {listing.location && <div className="text-xs text-gray-500">{listing.location}</div>}
                     {!listing.winery_id && <div className="text-xs text-gray-500">Not matched to an active winery licence</div>}
+                    {listing.notes && <div className="mt-1 max-w-xl text-xs text-gray-600">{listing.notes}</div>}
                   </td>
                   <td className="py-2 pr-3 whitespace-nowrap">{listing.asking_price != null ? formatPrice(listing.asking_price, listing.currency) : "Not stated"}</td>
                   <td className="py-2 pr-3">{listing.planted_acres ?? "?"} / {listing.total_acres ?? "?"}</td>
                   <td className="py-2 pr-3">{listing.status && <Badge variant="wine">{listing.status}</Badge>}</td>
-                  <td className="py-2 whitespace-nowrap text-gray-600">{listing.as_of ?? "—"}</td>
+                  <td className="py-2 whitespace-nowrap text-gray-600">
+                    {listing.as_of ?? "—"}
+                    {listing.source_url && <div><a href={listing.source_url} target="_blank" rel="noreferrer" className="text-xs underline">Source</a></div>}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
         <p className="text-xs text-gray-500">
-          Asking prices, entered by hand from public sources. Listings change, so confirm details with the listing agent.
+          Asking prices, entered by hand from public sources, with any reported sale price in the notes. "As of" is the date last checked. Listings change, so confirm details with the listing agent.
         </p>
       </Card>
 

@@ -158,7 +158,7 @@ export default function WineriesPage() {
             onChange={(e) => setFilters({ ...filters, forSale: e.target.checked })}
             className="accent-wine-700"
           />
-          Only wineries with a sale listing
+          Only wineries still for sale
         </label>
         <WeightControls weights={weights} onChange={setWeights} />
       </Card>
