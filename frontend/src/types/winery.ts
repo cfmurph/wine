@@ -83,6 +83,19 @@ export interface DataSource {
   url?: string | null;
 }
 
+export interface WineryLandCheck {
+  matched_address?: string | null;
+  geocode_score?: number | null;
+  address_reliable: boolean;
+  in_alr?: boolean | null;
+  wells_nearby?: number | null;
+  irrigation_wells_nearby?: number | null;
+  fires_since_2000?: number | null;
+  latest_fire_year?: number | null;
+  largest_fire_hectares?: number | null;
+  checked_on: string;
+}
+
 export interface WineryDetail extends WinerySummary {
   licence_number: string;
   licensee?: string | null;
@@ -92,6 +105,7 @@ export interface WineryDetail extends WinerySummary {
   endorsements: string[];
   service_capacity?: number | null;
   wines: WineryWine[];
+  land_check?: WineryLandCheck | null;
   listings: WineryListing[];
   sources: DataSource[];
 }

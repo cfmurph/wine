@@ -157,6 +157,7 @@ class Winery(Base):
 
     wines = relationship("Wine", back_populates="winery")
     listings = relationship("WineryListing", back_populates="winery")
+    land_check = relationship("WineryLandCheck", back_populates="winery", uselist=False, cascade="all, delete-orphan")
 
 
 class PriceSnapshot(Base):
@@ -201,6 +202,27 @@ class WineryListing(Base):
     __table_args__ = (UniqueConstraint("advertised_name", "as_of", name="uq_winery_listing"),)
 
     winery = relationship("Winery", back_populates="listings")
+
+
+class WineryLandCheck(Base):
+    """Public map data around a winery's licensed address. None means not checked or unavailable."""
+
+    __tablename__ = "winery_land_check"
+
+    id = Column(String, primary_key=True, default=_uuid)
+    winery_id = Column(String, ForeignKey("winery.id", ondelete="CASCADE"), nullable=False, unique=True)
+    matched_address = Column(String(256))
+    geocode_score = Column(Integer)
+    address_reliable = Column(Boolean, nullable=False)
+    in_alr = Column(Boolean)
+    wells_nearby = Column(Integer)
+    irrigation_wells_nearby = Column(Integer)
+    fires_since_2000 = Column(Integer)
+    latest_fire_year = Column(Integer)
+    largest_fire_hectares = Column(Float)
+    checked_on = Column(Date, nullable=False)
+
+    winery = relationship("Winery", back_populates="land_check")
 
 
 class WinerySale(Base):

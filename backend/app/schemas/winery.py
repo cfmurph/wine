@@ -82,6 +82,21 @@ class DataSourceOut(BaseModel):
     url: Optional[str] = None
 
 
+class WineryLandCheckOut(BaseModel):
+    matched_address: Optional[str] = None
+    geocode_score: Optional[int] = None
+    address_reliable: bool
+    in_alr: Optional[bool] = None
+    wells_nearby: Optional[int] = None
+    irrigation_wells_nearby: Optional[int] = None
+    fires_since_2000: Optional[int] = None
+    latest_fire_year: Optional[int] = None
+    largest_fire_hectares: Optional[float] = None
+    checked_on: date
+
+    model_config = {"from_attributes": True}
+
+
 class WineryDetail(WinerySummary):
     licence_number: str
     licensee: Optional[str] = None
@@ -92,6 +107,7 @@ class WineryDetail(WinerySummary):
     service_capacity: Optional[int] = None
     wines: List[WineryWineOut]
     listings: List[WineryListingOut]
+    land_check: Optional[WineryLandCheckOut] = None
     sources: List[DataSourceOut]
 
 
