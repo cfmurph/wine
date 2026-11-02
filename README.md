@@ -67,7 +67,7 @@ Copy `backend/.env.example` → `backend/.env` and set:
 
 ## Winery Acquisition Tool
 
-`/wineries` and `/market` help screen licensed BC wineries as possible acquisitions. `/advisors` lists BC specialists to review a purchase; its entries are hand-checked and live in the page file.
+`/wineries` and `/market` help screen licensed BC wineries as possible acquisitions. `/advisors` lists BC specialists to review a purchase; its entries are hand-checked and live in the page file. `/deals` tracks each purchase for the logged-in user; deal data stays in the database and must never be committed.
 
 Load or refresh the data from `backend/`, in this order:
 

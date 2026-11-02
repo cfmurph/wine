@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { AlertCircle, ArrowLeft } from "lucide-react";
-import { getWinery } from "@/lib/api";
+import { createDeal, getWinery } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { AcquisitionEstimate } from "@/components/winery/AcquisitionEstimate";
 import { dataCoverage, formatWineryScore, ScoreBreakdown, ScreeningNotice } from "@/components/winery/ScoreBreakdown";
@@ -58,6 +59,12 @@ export default function WineryDetailPage() {
   const [weights, setWeights] = useState(DEFAULT_WEIGHTS);
   const [winery, setWinery] = useState<WineryDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [tracking, setTracking] = useState<string | null>(null);
+
+  const trackDeal = () =>
+    createDeal(winery!.name, winery!.id)
+      .then(() => setTracking("Added to your deals."))
+      .catch(() => setTracking("Log in to track this deal."));
 
   useEffect(() => {
     let current = true;
@@ -90,7 +97,13 @@ export default function WineryDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           All wineries
         </Link>
-        <h1 className="text-3xl font-bold text-gray-900">{winery.name}</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-3xl font-bold text-gray-900">{winery.name}</h1>
+          <div className="flex items-center gap-3">
+            {tracking && <span className="text-sm text-gray-600">{tracking}</span>}
+            <Button variant="secondary" size="sm" onClick={trackDeal}>Track this deal</Button>
+          </div>
+        </div>
         <p className="text-gray-500">
           {[winery.street, winery.city, winery.region].filter(Boolean).join(", ")}
         </p>

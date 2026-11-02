@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Wine, Search, GitCompare, BookMarked, User, Users, Grape, BarChart3 } from "lucide-react";
+import { Wine, Search, GitCompare, BookMarked, User, Users, Grape, BarChart3, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -12,6 +12,7 @@ const links = [
   { href: "/wineries", label: "Wineries", icon: Grape },
   { href: "/market", label: "Market", icon: BarChart3 },
   { href: "/advisors", label: "Advisors", icon: Users },
+  { href: "/deals", label: "Deals", icon: ClipboardList },
   { href: "/profile", label: "Profile", icon: User },
 ];
 
@@ -24,7 +25,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tight">
             <Wine className="h-6 w-6 text-wine-200" />
-            <span>WineApp</span>
+            <span className="hidden sm:inline">WineApp</span>
           </Link>
 
           <div className="flex items-center gap-1">

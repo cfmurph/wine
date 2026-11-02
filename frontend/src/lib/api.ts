@@ -14,6 +14,7 @@ import {
   WineryFilters,
   WineryListResponse,
 } from "@/types/winery";
+import { Deal, DealItem, DealItemKind, DealUpdate } from "@/types/deal";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
@@ -156,6 +157,45 @@ export async function getMarket(): Promise<MarketData> {
 }
 
 // ---- Auth ----
+
+// ---- Deals ----
+
+export async function getDeals(): Promise<Deal[]> {
+  const { data } = await api.get<Deal[]>("/users/me/deals");
+  return data;
+}
+
+export async function createDeal(name: string, wineryId?: string): Promise<Deal> {
+  const { data } = await api.post<Deal>("/users/me/deals", { name, winery_id: wineryId });
+  return data;
+}
+
+export async function updateDeal(id: string, payload: DealUpdate): Promise<Deal> {
+  const { data } = await api.patch<Deal>(`/users/me/deals/${id}`, payload);
+  return data;
+}
+
+export async function deleteDeal(id: string): Promise<void> {
+  await api.delete(`/users/me/deals/${id}`);
+}
+
+export async function addDealItem(dealId: string, kind: DealItemKind, title: string): Promise<DealItem> {
+  const { data } = await api.post<DealItem>(`/users/me/deals/${dealId}/items`, { kind, title });
+  return data;
+}
+
+export async function updateDealItem(
+  dealId: string,
+  itemId: string,
+  payload: { done?: boolean; assignee?: string | null }
+): Promise<DealItem> {
+  const { data } = await api.patch<DealItem>(`/users/me/deals/${dealId}/items/${itemId}`, payload);
+  return data;
+}
+
+export async function deleteDealItem(dealId: string, itemId: string): Promise<void> {
+  await api.delete(`/users/me/deals/${dealId}/items/${itemId}`);
+}
 
 export async function login(email: string, password: string) {
   const { data } = await api.post("/auth/login", { email, password });
