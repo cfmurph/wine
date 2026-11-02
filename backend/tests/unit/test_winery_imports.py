@@ -15,6 +15,7 @@ from scripts.import_bc_prices import observed_on_from_name, parse_row as parse_p
 from scripts.import_bc_wineries import parse_wineries
 from scripts.import_listings import parse_row as parse_listing_row
 from scripts.import_market_stats import parse_rows as parse_market_rows
+from scripts.check_listings import classify_page, latest_open_listings, price_appears
 from scripts.import_sales import parse_row as parse_sale_row
 from app.schemas.winery import WinerySaleOut
 
@@ -185,3 +186,33 @@ def test_committed_sales_file_parses():
     assert len({(r["name"], r["sold_year"]) for r in records}) == len(records)
     assert all(r["source_url"] for r in records)
     assert all(len(r["evidence"]) <= 32 and len(r["sale_type"]) <= 32 for r in records)
+
+
+@pytest.mark.parametrize("text", ["$3,250,000", "Price: 3250000", "CA$3 250 000", "$3.25M", "$3.25 million"])
+def test_price_appears_in_common_formats(text):
+    assert price_appears(text, 3_250_000)
+
+
+@pytest.mark.parametrize("text", ["$3,900,000", "13,250,000", "$3,250,0001", ""])
+def test_price_doesnt_match_other_numbers(text):
+    assert not price_appears(text, 3_250_000)
+
+
+def test_classify_page():
+    assert classify_page(403, "", 100_000) == "blocked"
+    assert classify_page(429, "", 100_000) == "blocked"
+    assert classify_page(404, "", 100_000) == "page gone"
+    assert classify_page(200, "$100,000", 100_000) == "price found"
+    assert classify_page(200, "$200,000", 100_000) == "price not found"
+    assert classify_page(200, "anything", None) == "loaded, no price to compare"
+    assert classify_page(500, "", 100_000) == "error 500"
+
+
+def test_latest_open_listings_uses_newest_row_and_skips_closed():
+    rows = [
+        {"advertised_name": "A", "as_of": "2026-10-01", "status": "Advertised"},
+        {"advertised_name": "A", "as_of": "2026-11-01", "status": "Sold"},
+        {"advertised_name": "B", "as_of": "2026-11-01", "status": "Advertised"},
+        {"advertised_name": "B", "as_of": "2026-10-01", "status": "Sold"},
+    ]
+    assert [r["advertised_name"] for r in latest_open_listings(rows)] == ["B"]

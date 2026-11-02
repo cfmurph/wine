@@ -138,6 +138,8 @@ export interface MarketData {
   price_date?: string | null;
   price_source: DataSource;
   listings: WineryListing[];
+  listings_to_recheck: WineryListing[];
+  recheck_after_days: number;
   sales: WinerySale[];
   reports: DataSource[];
 }

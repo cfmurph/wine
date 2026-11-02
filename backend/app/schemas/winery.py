@@ -153,5 +153,7 @@ class MarketResponse(BaseModel):
     price_date: Optional[date] = None
     price_source: DataSourceOut
     listings: List[WineryListingOut]
+    listings_to_recheck: List[WineryListingOut]
+    recheck_after_days: int
     sales: List[WinerySaleOut]
     reports: List[DataSourceOut]

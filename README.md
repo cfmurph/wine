@@ -82,6 +82,8 @@ python3 scripts/link_wineries.py        # Link wines and listings to wineries
 
 Critic scores come from `scripts/seed_from_kaggle.py`.
 
+To check whether listing pages still load and show the recorded price, run `python3 scripts/check_listings.py`. It respects `robots.txt` and only reports; add a new row to `data/winery_listings.csv` with today's `as_of` after confirming a listing by hand.
+
 `link_wineries.py` only links exact name matches and confirmed aliases. It writes everything else to `data/winery_match_review.csv`. To confirm a match, add the name and licence number to `data/winery_aliases.csv` and run it again.
 
 Public data doesn't show any winery's bottle sales or costs. Scores are a screening aid, and the estimate on each winery page runs on the user's own assumptions.
