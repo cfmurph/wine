@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.wine import UserWine
+from app.models import UserWine
 from app.schemas.cellar import UserWineCreate, UserWineUpdate, UserWineOut
 from app.core.logging import logger
 

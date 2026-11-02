@@ -14,7 +14,7 @@ sys.path.insert(0, "/app")
 from sqlalchemy import func, select
 
 from app.db.session import AsyncSessionLocal
-from app.models.wine import Wine, Winery, WineryLandCheck
+from app.models import Wine, Winery, WineryLandCheck
 
 WINERIES = [
     ("Averill Creek Vineyard", "301822", "Duncan"),

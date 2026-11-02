@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.wine import Wine, WineScore, WinePrice, Pairing
+from app.models import Wine, WineScore, WinePrice, Pairing
 from app.adapters.wine_searcher import WineSearcherAdapter
 from app.adapters.global_wine_score import GlobalWineScoreAdapter
 from app.adapters.spoonacular import SpoonacularAdapter

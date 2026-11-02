@@ -21,7 +21,7 @@ from scripts._import_common import make_session, read_source, read_xlsx, resolve
 
 from sqlalchemy import select
 
-from app.models.wine import Winery
+from app.models import Winery
 from app.services.winery_matching import clean_establishment_name
 
 SOURCE = "bc_licensed_establishments"

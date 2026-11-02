@@ -20,7 +20,7 @@ from scripts._import_common import DATA_DIR, make_session, resolve_dsn
 
 from sqlalchemy import select
 
-from app.models.wine import WinerySale
+from app.models import WinerySale
 
 _OPTIONAL_FLOATS = ("last_asking_price", "total_acres", "planted_acres")
 _OPTIONAL_TEXT = ("location", "notes", "source_url")

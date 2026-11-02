@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.wine import MarketStat, PriceSnapshot, Wine, Winery, WineryListing, WinerySale
+from app.models import MarketStat, PriceSnapshot, Wine, Winery, WineryListing, WinerySale
 from app.schemas.winery import (
     DataSourceOut, MarketResponse, MarketStatOut, PriceBucketOut, WineryDetail,
     WineryListingOut, WineryListResponse, WinerySaleOut, WinerySummary, WineryWineOut,
